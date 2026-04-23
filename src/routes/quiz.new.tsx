@@ -1,11 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { QuizEditor, type TestDraft, type QuestionDraft } from "@/components/QuizEditor";
 import { safeMutation } from "@/lib/safe-query";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
+import { EditorSkeleton } from "@/components/EditorSkeleton";
+import type { TestDraft, QuestionDraft } from "@/components/QuizEditor";
+
+const QuizEditor = lazy(() => import("@/components/QuizEditor").then((m) => ({ default: m.QuizEditor })));
 
 export const Route = createFileRoute("/quiz/new")({
   head: () => ({ meta: [{ title: t.newQuiz.metaTitle }] }),
@@ -58,17 +61,25 @@ function NewQuizPage() {
     }
   }
 
-  if (loading || !user) return <div className="mx-auto max-w-3xl px-4 py-12">{t.loading}</div>;
+  if (loading || !user) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-12">
+        <EditorSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       <h1 className="mb-8 font-display text-3xl font-semibold sm:text-4xl">{t.newQuiz.title}</h1>
-      <QuizEditor
-        initialTest={{ title: "", description: "", time_limit_min: 10, random_enabled: false, is_public: true, access_code: "", max_attempts: 1 }}
-        initialQuestions={[]}
-        submitLabel={t.newQuiz.submit}
-        onSubmit={handleSubmit}
-      />
+      <Suspense fallback={<EditorSkeleton />}>
+        <QuizEditor
+          initialTest={{ title: "", description: "", time_limit_min: 10, random_enabled: false, is_public: true, access_code: "", max_attempts: 1 }}
+          initialQuestions={[]}
+          submitLabel={t.newQuiz.submit}
+          onSubmit={handleSubmit}
+        />
+      </Suspense>
     </div>
   );
 }

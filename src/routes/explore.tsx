@@ -30,9 +30,7 @@ function ExplorePage() {
       try {
         const { data, error } = await supabase
           .from("tests")
-          .select(
-            "id, title, description, time_limit, random_enabled, created_at, profiles!tests_creator_id_fkey(username, full_name), questions(count)",
-          )
+          .select("id, title, description, time_limit, random_enabled, created_at, creator_id, questions(count)")
           .eq("is_public", true)
           .order("created_at", { ascending: false })
           .limit(50);
@@ -41,14 +39,26 @@ function ExplorePage() {
           setLoading(false);
           return;
         }
-        const mapped: PublicTest[] = (data ?? []).map((tt: any) => ({
+        const rows = data ?? [];
+        const creatorIds = Array.from(new Set(rows.map((r: any) => r.creator_id).filter(Boolean)));
+        let profileMap: Record<string, { username: string; full_name: string }> = {};
+        if (creatorIds.length) {
+          const { data: profs } = await supabase
+            .from("profiles")
+            .select("id, username, full_name")
+            .in("id", creatorIds);
+          (profs ?? []).forEach((p: any) => {
+            profileMap[p.id] = { username: p.username, full_name: p.full_name };
+          });
+        }
+        const mapped: PublicTest[] = rows.map((tt: any) => ({
           id: tt.id,
           title: tt.title,
           description: tt.description,
           time_limit: tt.time_limit,
           random_enabled: tt.random_enabled,
           created_at: tt.created_at,
-          creator: tt.profiles ? { username: tt.profiles.username, full_name: tt.profiles.full_name } : null,
+          creator: profileMap[tt.creator_id] ?? null,
           question_count: tt.questions?.[0]?.count ?? 0,
         }));
         setTests(mapped);
