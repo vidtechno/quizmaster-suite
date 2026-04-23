@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -114,8 +114,8 @@ function ResultsPage() {
                 const open = openId === r.id;
                 const log: any[] = Array.isArray(r.answers_log) ? r.answers_log : [];
                 return (
-                  <>
-                    <tr key={r.id} className="border-t">
+                  <Fragment key={r.id}>
+                    <tr className="border-t">
                       <td className="px-4 py-3">
                         <div className="font-medium">{r.profiles?.full_name ?? "—"}</div>
                         <div className="text-xs text-muted-foreground">@{r.profiles?.username}</div>
