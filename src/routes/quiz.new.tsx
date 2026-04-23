@@ -20,11 +20,11 @@ function NewQuizPage() {
 
   async function handleSubmit(test: TestDraft, questions: QuestionDraft[]) {
     if (!user) return;
-    if (!test.title.trim()) return toast.error("Add a title");
+    if (!test.title.trim()) { toast.error("Add a title"); return; }
     if (questions.some((q) => !q.question_text.trim() || q.options.some((o) => !o.trim()))) {
-      return toast.error("Fill in every question and option");
+      toast.error("Fill in every question and option"); return;
     }
-    if (!test.is_public && !test.access_code.trim()) return toast.error("Private quizzes need an access code");
+    if (!test.is_public && !test.access_code.trim()) { toast.error("Private quizzes need an access code"); return; }
 
     const { data: created, error } = await supabase
       .from("tests")
@@ -40,7 +40,7 @@ function NewQuizPage() {
       })
       .select("id")
       .single();
-    if (error || !created) return toast.error(error?.message ?? "Failed to create quiz");
+    if (error || !created) { toast.error(error?.message ?? "Failed to create quiz"); return; }
 
     const rows = questions.map((q, idx) => ({
       test_id: created.id,
@@ -50,7 +50,7 @@ function NewQuizPage() {
       position: idx,
     }));
     const { error: qErr } = await supabase.from("questions").insert(rows);
-    if (qErr) return toast.error(qErr.message);
+    if (qErr) { toast.error(qErr.message); return; }
     toast.success("Quiz created!");
     navigate({ to: "/dashboard" });
   }

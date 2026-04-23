@@ -58,11 +58,11 @@ function EditQuizPage() {
 
   async function handleSubmit(t: TestDraft, qs: QuestionDraft[]) {
     if (!user) return;
-    if (!t.title.trim()) return toast.error("Add a title");
+    if (!t.title.trim()) { toast.error("Add a title"); return; }
     if (qs.some((q) => !q.question_text.trim() || q.options.some((o) => !o.trim()))) {
-      return toast.error("Fill in every question and option");
+      toast.error("Fill in every question and option"); return;
     }
-    if (!t.is_public && !t.access_code.trim()) return toast.error("Private quizzes need an access code");
+    if (!t.is_public && !t.access_code.trim()) { toast.error("Private quizzes need an access code"); return; }
 
     const { error: tErr } = await supabase
       .from("tests")
@@ -76,7 +76,7 @@ function EditQuizPage() {
         max_attempts: t.max_attempts,
       })
       .eq("id", id);
-    if (tErr) return toast.error(tErr.message);
+    if (tErr) { toast.error(tErr.message); return; }
 
     // Replace questions: delete + insert (simple, reliable)
     await supabase.from("questions").delete().eq("test_id", id);
@@ -88,7 +88,7 @@ function EditQuizPage() {
       position: idx,
     }));
     const { error: qErr } = await supabase.from("questions").insert(rows);
-    if (qErr) return toast.error(qErr.message);
+    if (qErr) { toast.error(qErr.message); return; }
     toast.success("Saved!");
     navigate({ to: "/dashboard" });
   }
