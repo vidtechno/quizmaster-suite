@@ -94,12 +94,30 @@ function QuizPage() {
         if ((tt as Test).is_public) {
           const { data: lb } = await supabase
             .from("results")
-            .select("score, time_spent, total_questions, profiles!results_user_id_fkey(username)")
+            .select("score, time_spent, total_questions, user_id")
             .eq("test_id", id)
             .order("score", { ascending: false })
             .order("time_spent", { ascending: true })
             .limit(20);
-          setLeaderboard((lb as any) ?? []);
+          const userIds = Array.from(new Set((lb ?? []).map((r: any) => r.user_id).filter(Boolean)));
+          let pmap: Record<string, { username: string }> = {};
+          if (userIds.length) {
+            const { data: profs } = await supabase
+              .from("profiles")
+              .select("id, username")
+              .in("id", userIds);
+            (profs ?? []).forEach((p: any) => {
+              pmap[p.id] = { username: p.username };
+            });
+          }
+          setLeaderboard(
+            (lb ?? []).map((r: any) => ({
+              score: r.score,
+              time_spent: r.time_spent,
+              total_questions: r.total_questions,
+              profiles: pmap[r.user_id] ?? null,
+            })),
+          );
         }
 
         if (user) {

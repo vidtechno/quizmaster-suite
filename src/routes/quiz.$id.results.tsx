@@ -50,15 +50,35 @@ function ResultsPage() {
       setTest(tt);
       const { data: r, error: rErr } = await supabase
         .from("results")
-        .select(
-          "id, score, total_questions, time_spent, completed_at, answers_log, profiles!results_user_id_fkey(username, full_name, phone)",
-        )
+        .select("id, score, total_questions, time_spent, completed_at, answers_log, user_id")
         .eq("test_id", id)
         .order("completed_at", { ascending: false });
       if (rErr) {
         toast.error(t.err.loadFailed);
       } else {
-        setResults((r as any) ?? []);
+        const rows = r ?? [];
+        const userIds = Array.from(new Set(rows.map((x: any) => x.user_id).filter(Boolean)));
+        let pmap: Record<string, { username: string; full_name: string; phone: string }> = {};
+        if (userIds.length) {
+          const { data: profs } = await supabase
+            .from("profiles")
+            .select("id, username, full_name, phone")
+            .in("id", userIds);
+          (profs ?? []).forEach((p: any) => {
+            pmap[p.id] = { username: p.username, full_name: p.full_name, phone: p.phone };
+          });
+        }
+        setResults(
+          rows.map((x: any) => ({
+            id: x.id,
+            score: x.score,
+            total_questions: x.total_questions,
+            time_spent: x.time_spent,
+            completed_at: x.completed_at,
+            answers_log: x.answers_log,
+            profiles: pmap[x.user_id] ?? null,
+          })),
+        );
       }
     } catch {
       toast.error(t.err.network);
