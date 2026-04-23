@@ -2,9 +2,9 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import type { TestDraft, QuestionDraft } from "@/components/QuizEditor";
+import type { TestDraft, QuestionDraft, GroupOption } from "@/components/QuizEditor";
 import { EditorSkeleton } from "@/components/EditorSkeleton";
-import { safeMutation } from "@/lib/safe-query";
+import { safeMutation, safeQuery } from "@/lib/safe-query";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
 
@@ -22,6 +22,7 @@ function EditQuizPage() {
   const [loading, setLoading] = useState(true);
   const [test, setTest] = useState<TestDraft | null>(null);
   const [questions, setQuestions] = useState<QuestionDraft[]>([]);
+  const [groups, setGroups] = useState<GroupOption[]>([]);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/login" });
@@ -48,6 +49,7 @@ function EditQuizPage() {
           is_public: tt.is_public,
           access_code: tt.access_code ?? "",
           max_attempts: tt.max_attempts,
+          group_id: tt.group_id ?? null,
         });
         const { data: qs } = await supabase.from("questions").select("*").eq("test_id", id).order("position");
         setQuestions(
@@ -58,6 +60,11 @@ function EditQuizPage() {
             correct_answer_index: q.correct_answer_index,
           })),
         );
+        const gs = await safeQuery(
+          () => supabase.from("groups").select("id, name").eq("creator_id", user.id).order("created_at", { ascending: false }),
+          { fallback: [] as GroupOption[] },
+        );
+        setGroups(gs ?? []);
       } catch {
         toast.error(t.err.loadFailed);
       } finally {
@@ -69,21 +76,35 @@ function EditQuizPage() {
   async function handleSubmit(td: TestDraft, qs: QuestionDraft[]) {
     if (!user) return;
     try {
-      const ok1 = await safeMutation(() =>
-        supabase
-          .from("tests")
-          .update({
-            title: td.title.trim(),
-            description: td.description.trim() || null,
-            time_limit: Math.max(60, td.time_limit_min * 60),
-            random_enabled: td.random_enabled,
-            is_public: td.is_public,
-            access_code: td.is_public ? null : td.access_code.trim(),
-            max_attempts: td.max_attempts,
-          })
-          .eq("id", id),
-      );
-      if (!ok1) return;
+      // Need a fresh access code if turning private and don't have one yet
+      let accessCode: string | null = td.access_code || null;
+      if (!td.is_public && !accessCode) {
+        const { data: codeData, error: codeErr } = await supabase.rpc("generate_access_code");
+        if (codeErr || !codeData) {
+          toast.error(t.err.saveFailed);
+          return;
+        }
+        accessCode = codeData as string;
+      }
+
+      const { error: updErr } = await supabase
+        .from("tests")
+        .update({
+          title: td.title.trim(),
+          description: td.description.trim() || null,
+          time_limit: Math.max(60, td.time_limit_min * 60),
+          random_enabled: td.random_enabled,
+          is_public: td.is_public,
+          access_code: td.is_public ? null : accessCode,
+          group_id: td.is_public ? null : td.group_id,
+          max_attempts: td.max_attempts,
+        })
+        .eq("id", id);
+      if (updErr) {
+        if (updErr.code === "23505") toast.error(t.validate.duplicateActiveTest);
+        else toast.error(t.err.saveFailed);
+        return;
+      }
 
       // Replace questions: delete + insert (simple, reliable)
       await safeMutation(() => supabase.from("questions").delete().eq("test_id", id));
@@ -115,7 +136,13 @@ function EditQuizPage() {
     <div className="mx-auto max-w-3xl px-4 py-12">
       <h1 className="mb-8 font-display text-3xl font-semibold sm:text-4xl">{t.editQuiz.title}</h1>
       <Suspense fallback={<EditorSkeleton />}>
-        <QuizEditor initialTest={test} initialQuestions={questions} submitLabel={t.editQuiz.submit} onSubmit={handleSubmit} />
+        <QuizEditor
+          initialTest={test}
+          initialQuestions={questions}
+          submitLabel={t.editQuiz.submit}
+          groups={groups}
+          onSubmit={handleSubmit}
+        />
       </Suspense>
     </div>
   );
