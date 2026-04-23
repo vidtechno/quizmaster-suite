@@ -12,7 +12,7 @@ import { t } from "@/lib/i18n";
  *   );
  */
 export async function safeQuery<T>(
-  fn: () => Promise<{ data: T | null; error: { message: string } | null }>,
+  fn: () => PromiseLike<{ data: T | null; error: { message: string } | null }>,
   opts: { fallback: T; errorMessage?: string; silent?: boolean } = { fallback: null as unknown as T },
 ): Promise<T> {
   try {
@@ -34,7 +34,7 @@ export async function safeQuery<T>(
 
 /** Same as safeQuery but for write/mutation calls — returns success boolean. */
 export async function safeMutation(
-  fn: () => Promise<{ error: { message: string } | null }>,
+  fn: () => PromiseLike<{ error: { message: string } | null }>,
   opts: { errorMessage?: string } = {},
 ): Promise<boolean> {
   try {
