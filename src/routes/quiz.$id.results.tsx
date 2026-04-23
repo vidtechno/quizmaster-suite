@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState, Fragment } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -109,52 +109,53 @@ function ResultsPage() {
               </tr>
             </thead>
             <tbody>
-              {results.map((r) => {
+              {results.flatMap((r) => {
                 const pct = Math.round((r.score / r.total_questions) * 100);
                 const open = openId === r.id;
                 const log: any[] = Array.isArray(r.answers_log) ? r.answers_log : [];
-                return (
-                  <Fragment key={r.id}>
-                    <tr className="border-t">
-                      <td className="px-4 py-3">
-                        <div className="font-medium">{r.profiles?.full_name ?? "—"}</div>
-                        <div className="text-xs text-muted-foreground">@{r.profiles?.username}</div>
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">{r.profiles?.phone}</td>
-                      <td className="px-4 py-3 text-right">
-                        <span className={`font-semibold ${pct >= 70 ? "text-success" : pct >= 50 ? "" : "text-destructive"}`}>
-                          {r.score}/{r.total_questions}
-                        </span>
-                        <span className="ml-1 text-xs text-muted-foreground">({pct}%)</span>
-                      </td>
-                      <td className="px-4 py-3 text-right text-muted-foreground">{Math.floor(r.time_spent / 60)}m {r.time_spent % 60}s</td>
-                      <td className="px-4 py-3 text-right text-xs text-muted-foreground">{new Date(r.completed_at).toLocaleString()}</td>
-                      <td className="px-4 py-3 text-right">
-                        <Button size="sm" variant="ghost" onClick={() => setOpenId(open ? null : r.id)}>
-                          {open ? "Hide" : "Details"}
-                        </Button>
+                const rows = [
+                  <tr key={r.id} className="border-t">
+                    <td className="px-4 py-3">
+                      <div className="font-medium">{r.profiles?.full_name ?? "—"}</div>
+                      <div className="text-xs text-muted-foreground">@{r.profiles?.username}</div>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{r.profiles?.phone}</td>
+                    <td className="px-4 py-3 text-right">
+                      <span className={`font-semibold ${pct >= 70 ? "text-success" : pct >= 50 ? "" : "text-destructive"}`}>
+                        {r.score}/{r.total_questions}
+                      </span>
+                      <span className="ml-1 text-xs text-muted-foreground">({pct}%)</span>
+                    </td>
+                    <td className="px-4 py-3 text-right text-muted-foreground">{Math.floor(r.time_spent / 60)}m {r.time_spent % 60}s</td>
+                    <td className="px-4 py-3 text-right text-xs text-muted-foreground">{new Date(r.completed_at).toLocaleString()}</td>
+                    <td className="px-4 py-3 text-right">
+                      <Button size="sm" variant="ghost" onClick={() => setOpenId(open ? null : r.id)}>
+                        {open ? "Hide" : "Details"}
+                      </Button>
+                    </td>
+                  </tr>,
+                ];
+                if (open) {
+                  rows.push(
+                    <tr key={`${r.id}-detail`} className="border-t bg-muted/20">
+                      <td colSpan={6} className="p-4">
+                        <div className="space-y-2">
+                          {log.map((a: any, i: number) => (
+                            <div key={i} className="flex items-start gap-3 rounded-lg bg-background p-3">
+                              {a.is_correct ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" /> : <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />}
+                              <div className="min-w-0 flex-1 text-sm">
+                                <p className="font-medium">{i + 1}. {a.question_text}</p>
+                                <p className="mt-0.5 text-muted-foreground">Chose: {a.chosen_text ?? <em>—</em>}</p>
+                                {!a.is_correct && <p className="text-success">Correct: {a.correct_text}</p>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </td>
                     </tr>
-                    {open && (
-                      <tr className="border-t bg-muted/20">
-                        <td colSpan={6} className="p-4">
-                          <div className="space-y-2">
-                            {log.map((a: any, i: number) => (
-                              <div key={i} className="flex items-start gap-3 rounded-lg bg-background p-3">
-                                {a.is_correct ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" /> : <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />}
-                                <div className="min-w-0 flex-1 text-sm">
-                                  <p className="font-medium">{i + 1}. {a.question_text}</p>
-                                  <p className="mt-0.5 text-muted-foreground">Chose: {a.chosen_text ?? <em>—</em>}</p>
-                                  {!a.is_correct && <p className="text-success">Correct: {a.correct_text}</p>}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                );
+                  );
+                }
+                return rows;
               })}
             </tbody>
           </table>
