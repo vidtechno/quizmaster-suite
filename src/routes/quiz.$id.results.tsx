@@ -136,7 +136,7 @@ function ResultsPage() {
                       </td>
                     </tr>
                     {open && (
-                      <tr key={`${r.id}-detail`} className="border-t bg-muted/20">
+                      <tr className="border-t bg-muted/20">
                         <td colSpan={6} className="p-4">
                           <div className="space-y-2">
                             {log.map((a: any, i: number) => (
@@ -153,7 +153,7 @@ function ResultsPage() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 );
               })}
             </tbody>
