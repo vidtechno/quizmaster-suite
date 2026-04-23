@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { QuizEditor, type TestDraft, type QuestionDraft } from "@/components/QuizEditor";
+import { safeMutation } from "@/lib/safe-query";
 import { toast } from "sonner";
+import { t } from "@/lib/i18n";
 
 export const Route = createFileRoute("/quiz/$id/edit")({
-  head: () => ({ meta: [{ title: "Edit quiz — Quizly" }] }),
+  head: () => ({ meta: [{ title: t.editQuiz.metaTitle }] }),
   component: EditQuizPage,
 });
 
@@ -25,80 +27,85 @@ function EditQuizPage() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: t, error } = await supabase.from("tests").select("*").eq("id", id).maybeSingle();
-      if (error || !t) {
-        toast.error("Quiz not found");
-        return navigate({ to: "/dashboard" });
+      try {
+        const { data: tt, error } = await supabase.from("tests").select("*").eq("id", id).maybeSingle();
+        if (error || !tt) {
+          toast.error(t.editQuiz.notFound);
+          return navigate({ to: "/dashboard" });
+        }
+        if (tt.creator_id !== user.id) {
+          toast.error(t.editQuiz.notYours);
+          return navigate({ to: "/dashboard" });
+        }
+        setTest({
+          title: tt.title,
+          description: tt.description ?? "",
+          time_limit_min: Math.round(tt.time_limit / 60),
+          random_enabled: tt.random_enabled,
+          is_public: tt.is_public,
+          access_code: tt.access_code ?? "",
+          max_attempts: tt.max_attempts,
+        });
+        const { data: qs } = await supabase.from("questions").select("*").eq("test_id", id).order("position");
+        setQuestions(
+          (qs ?? []).map((q: any) => ({
+            id: q.id,
+            question_text: q.question_text,
+            options: Array.isArray(q.options) ? q.options : [],
+            correct_answer_index: q.correct_answer_index,
+          })),
+        );
+      } catch {
+        toast.error(t.err.loadFailed);
+      } finally {
+        setLoading(false);
       }
-      if (t.creator_id !== user.id) {
-        toast.error("Not your quiz");
-        return navigate({ to: "/dashboard" });
-      }
-      setTest({
-        title: t.title,
-        description: t.description ?? "",
-        time_limit_min: Math.round(t.time_limit / 60),
-        random_enabled: t.random_enabled,
-        is_public: t.is_public,
-        access_code: t.access_code ?? "",
-        max_attempts: t.max_attempts,
-      });
-      const { data: qs } = await supabase.from("questions").select("*").eq("test_id", id).order("position");
-      setQuestions(
-        (qs ?? []).map((q: any) => ({
-          id: q.id,
-          question_text: q.question_text,
-          options: Array.isArray(q.options) ? q.options : [],
-          correct_answer_index: q.correct_answer_index,
-        }))
-      );
-      setLoading(false);
     })();
   }, [id, user, navigate]);
 
-  async function handleSubmit(t: TestDraft, qs: QuestionDraft[]) {
+  async function handleSubmit(td: TestDraft, qs: QuestionDraft[]) {
     if (!user) return;
-    if (!t.title.trim()) { toast.error("Add a title"); return; }
-    if (qs.some((q) => !q.question_text.trim() || q.options.some((o) => !o.trim()))) {
-      toast.error("Fill in every question and option"); return;
+    try {
+      const ok1 = await safeMutation(() =>
+        supabase
+          .from("tests")
+          .update({
+            title: td.title.trim(),
+            description: td.description.trim() || null,
+            time_limit: Math.max(60, td.time_limit_min * 60),
+            random_enabled: td.random_enabled,
+            is_public: td.is_public,
+            access_code: td.is_public ? null : td.access_code.trim(),
+            max_attempts: td.max_attempts,
+          })
+          .eq("id", id),
+      );
+      if (!ok1) return;
+
+      // Replace questions: delete + insert (simple, reliable)
+      await safeMutation(() => supabase.from("questions").delete().eq("test_id", id));
+      const rows = qs.map((q, idx) => ({
+        test_id: id,
+        question_text: q.question_text.trim(),
+        options: q.options.map((o) => o.trim()),
+        correct_answer_index: q.correct_answer_index,
+        position: idx,
+      }));
+      const ok2 = await safeMutation(() => supabase.from("questions").insert(rows));
+      if (!ok2) return;
+      toast.success(t.editQuiz.success);
+      navigate({ to: "/dashboard" });
+    } catch {
+      toast.error(t.err.network);
     }
-    if (!t.is_public && !t.access_code.trim()) { toast.error("Private quizzes need an access code"); return; }
-
-    const { error: tErr } = await supabase
-      .from("tests")
-      .update({
-        title: t.title.trim(),
-        description: t.description.trim() || null,
-        time_limit: Math.max(60, t.time_limit_min * 60),
-        random_enabled: t.random_enabled,
-        is_public: t.is_public,
-        access_code: t.is_public ? null : t.access_code.trim(),
-        max_attempts: t.max_attempts,
-      })
-      .eq("id", id);
-    if (tErr) { toast.error(tErr.message); return; }
-
-    // Replace questions: delete + insert (simple, reliable)
-    await supabase.from("questions").delete().eq("test_id", id);
-    const rows = qs.map((q, idx) => ({
-      test_id: id,
-      question_text: q.question_text.trim(),
-      options: q.options.map((o) => o.trim()),
-      correct_answer_index: q.correct_answer_index,
-      position: idx,
-    }));
-    const { error: qErr } = await supabase.from("questions").insert(rows);
-    if (qErr) { toast.error(qErr.message); return; }
-    toast.success("Saved!");
-    navigate({ to: "/dashboard" });
   }
 
-  if (authLoading || loading || !test) return <div className="mx-auto max-w-3xl px-4 py-12">Loading…</div>;
+  if (authLoading || loading || !test) return <div className="mx-auto max-w-3xl px-4 py-12">{t.loading}</div>;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="mb-8 font-display text-4xl font-semibold">Edit quiz</h1>
-      <QuizEditor initialTest={test} initialQuestions={questions} submitLabel="Save changes" onSubmit={handleSubmit} />
+      <h1 className="mb-8 font-display text-3xl font-semibold sm:text-4xl">{t.editQuiz.title}</h1>
+      <QuizEditor initialTest={test} initialQuestions={questions} submitLabel={t.editQuiz.submit} onSubmit={handleSubmit} />
     </div>
   );
 }
