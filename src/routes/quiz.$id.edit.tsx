@@ -1,11 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { QuizEditor, type TestDraft, type QuestionDraft } from "@/components/QuizEditor";
+import type { TestDraft, QuestionDraft } from "@/components/QuizEditor";
+import { EditorSkeleton } from "@/components/EditorSkeleton";
 import { safeMutation } from "@/lib/safe-query";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
+
+const QuizEditor = lazy(() => import("@/components/QuizEditor").then((m) => ({ default: m.QuizEditor })));
 
 export const Route = createFileRoute("/quiz/$id/edit")({
   head: () => ({ meta: [{ title: t.editQuiz.metaTitle }] }),
@@ -100,12 +103,20 @@ function EditQuizPage() {
     }
   }
 
-  if (authLoading || loading || !test) return <div className="mx-auto max-w-3xl px-4 py-12">{t.loading}</div>;
+  if (authLoading || loading || !test) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-12">
+        <EditorSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       <h1 className="mb-8 font-display text-3xl font-semibold sm:text-4xl">{t.editQuiz.title}</h1>
-      <QuizEditor initialTest={test} initialQuestions={questions} submitLabel={t.editQuiz.submit} onSubmit={handleSubmit} />
+      <Suspense fallback={<EditorSkeleton />}>
+        <QuizEditor initialTest={test} initialQuestions={questions} submitLabel={t.editQuiz.submit} onSubmit={handleSubmit} />
+      </Suspense>
     </div>
   );
 }
