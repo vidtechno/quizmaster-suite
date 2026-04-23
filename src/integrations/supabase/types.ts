@@ -14,7 +14,151 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          phone: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id: string
+          phone: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          phone?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      questions: {
+        Row: {
+          correct_answer_index: number
+          created_at: string
+          id: string
+          options: Json
+          position: number
+          question_text: string
+          test_id: string
+        }
+        Insert: {
+          correct_answer_index: number
+          created_at?: string
+          id?: string
+          options: Json
+          position?: number
+          question_text: string
+          test_id: string
+        }
+        Update: {
+          correct_answer_index?: number
+          created_at?: string
+          id?: string
+          options?: Json
+          position?: number
+          question_text?: string
+          test_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      results: {
+        Row: {
+          answers_log: Json
+          completed_at: string
+          id: string
+          score: number
+          test_id: string
+          time_spent: number
+          total_questions: number
+          user_id: string
+        }
+        Insert: {
+          answers_log?: Json
+          completed_at?: string
+          id?: string
+          score: number
+          test_id: string
+          time_spent: number
+          total_questions: number
+          user_id: string
+        }
+        Update: {
+          answers_log?: Json
+          completed_at?: string
+          id?: string
+          score?: number
+          test_id?: string
+          time_spent?: number
+          total_questions?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "results_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tests: {
+        Row: {
+          access_code: string | null
+          created_at: string
+          creator_id: string
+          description: string | null
+          id: string
+          is_public: boolean
+          max_attempts: number
+          random_enabled: boolean
+          time_limit: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          access_code?: string | null
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          max_attempts?: number
+          random_enabled?: boolean
+          time_limit?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          access_code?: string | null
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          max_attempts?: number
+          random_enabled?: boolean
+          time_limit?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
