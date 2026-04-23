@@ -124,6 +124,43 @@ export const t = {
     results: "Natijalar",
     confirmDelete: "Bu testni va barcha natijalarini o'chirasizmi? Buni qaytarib bo'lmaydi.",
     deleted: "Test o'chirildi",
+    tabTests: "Testlar",
+    tabGroups: "Guruhlar",
+    profileTitle: "Sizning profilingiz",
+    statGroups: "Yaratilgan guruhlar",
+    statTests: "Yaratilgan testlar",
+    statAttempts: "Jami urinishlar",
+    forGroup: (name: string) => `Guruh: ${name}`,
+    publicTrack: "Ochiq",
+  },
+
+  // ---- Groups ----
+  groups: {
+    metaTitle: "Guruhlar — Quizly",
+    title: "Sizning guruhlaringiz",
+    subtitle: "Guruhlar — bu sizning sinflaringiz. Har bir yopiq test bitta guruhga bog'lanadi.",
+    newGroup: "Yangi guruh",
+    emptyTitle: "Hali guruhlar yo'q",
+    emptyDesc: "Guruhlar o'quvchilaringizni tartiblash va natijalarni aniq tahlil qilish uchun kerak.",
+    emptyCta: "Birinchi guruhni yaratish",
+    nameLabel: "Guruh nomi",
+    namePh: "masalan, 9-A sinf",
+    descLabel: "Tavsif (ixtiyoriy)",
+    descPh: "Bu guruh haqida qisqa eslatma",
+    create: "Guruh yaratish",
+    creating: "Yaratilmoqda…",
+    created: "Guruh yaratildi",
+    deleted: "Guruh o'chirildi",
+    confirmDelete: "Bu guruhni o'chirasizmi? Bog'langan testlar guruhsiz qoladi.",
+    cardTests: (n: number) => `${n} ta test`,
+    activeTest: "Faol yopiq test",
+    noActiveTest: "Faol yopiq test yo'q",
+    needGroupTitle: "Avval guruh yarating",
+    needGroupDesc: "Yopiq test yaratish uchun kamida bitta guruh kerak. Guruhlar o'quvchilaringizni tartiblash va natijalarni aniq tahlil qilish uchun kerak.",
+    helpWhy: "Guruhlar — bu sizning sinflaringiz. Har bir yopiq test bitta guruhga bog'lanadi va o'sha guruh uchun avtomatik kirish kodi yaratiladi.",
+    code: "Kirish kodi",
+    copyCode: "Nusxa olish",
+    codeCopied: "Kirish kodi nusxalandi",
   },
 
   // ---- Explore ----
@@ -169,7 +206,13 @@ export const t = {
       random: "Yoqilsa, har bir urinishda savollar va variantlar tartibi aralashtiriladi. Bu nusxa ko'chirishni qiyinlashtiradi.",
       public: "Ochiq testlar 'Testlarni ko'rish' bo'limida ro'yxatda chiqadi va umumiy reytingga ega bo'ladi. Yopiq testlar faqat kirish kodi bilan ishlanadi.",
       code: "Yopiq testga kirish uchun talabalar kiritadigan maxfiy kod. Kuchli, esda qoladigan kod tanlang (masalan, 9-A-2025).",
+      group: "Yopiq testlar guruhga bog'lanadi. Bir guruhda bir vaqtda faqat bitta yopiq test bo'lishi mumkin.",
+      autoCode: "Kirish kodi avtomatik yaratiladi va o'quvchilarga ulashiladi.",
     },
+    groupLabel: "Guruh",
+    groupPlaceholder: "Guruh tanlang",
+    publicNoGroup: "Ochiq test — guruh shart emas",
+    privacyChangeWarn: "Diqqat: Ochiqdan Yopiqqa o'tsangiz, mavjud natijalar arxivlanadi. Yana Ochiqqa qaytsangiz, ular tiklanadi.",
   },
 
   newQuiz: {
@@ -191,8 +234,10 @@ export const t = {
   validate: {
     needTitle: "Sarlavha kiritish shart",
     needCode: "Yopiq testlar uchun kirish kodi shart",
+    needGroup: "Yopiq testlar uchun guruh tanlash shart",
     needFields: "Qizil bilan belgilangan maydonlarni to'ldiring",
     fieldRequired: "Bu maydon to'ldirilishi shart",
+    duplicateActiveTest: "Bu guruhda allaqachon faol yopiq test mavjud. Avval uni o'chiring yoki ochiq qiling.",
   },
 
   // ---- Quiz player ----

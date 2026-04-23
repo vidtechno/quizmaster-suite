@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as GroupsRouteImport } from './routes/groups'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
@@ -27,6 +28,11 @@ const SignupRoute = SignupRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GroupsRoute = GroupsRouteImport.update({
+  id: '/groups',
+  path: '/groups',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExploreRoute = ExploreRouteImport.update({
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
+  '/groups': typeof GroupsRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/quiz/$id': typeof QuizIdRouteWithChildren
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
+  '/groups': typeof GroupsRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/quiz/$id': typeof QuizIdRouteWithChildren
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
+  '/groups': typeof GroupsRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/quiz/$id': typeof QuizIdRouteWithChildren
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/explore'
+    | '/groups'
     | '/login'
     | '/signup'
     | '/quiz/$id'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/explore'
+    | '/groups'
     | '/login'
     | '/signup'
     | '/quiz/$id'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/explore'
+    | '/groups'
     | '/login'
     | '/signup'
     | '/quiz/$id'
@@ -139,6 +151,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   ExploreRoute: typeof ExploreRoute
+  GroupsRoute: typeof GroupsRoute
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
   QuizIdRoute: typeof QuizIdRouteWithChildren
@@ -159,6 +172,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/groups': {
+      id: '/groups'
+      path: '/groups'
+      fullPath: '/groups'
+      preLoaderRoute: typeof GroupsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/explore': {
@@ -230,6 +250,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   ExploreRoute: ExploreRoute,
+  GroupsRoute: GroupsRoute,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
   QuizIdRoute: QuizIdRouteWithChildren,

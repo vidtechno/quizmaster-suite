@@ -43,6 +43,13 @@ export function Navbar() {
               >
                 {t.nav.dashboard}
               </Link>
+              <Link
+                to="/groups"
+                className="hidden rounded-md px-2.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline sm:px-3"
+                activeProps={{ className: "text-foreground" }}
+              >
+                {t.dashboard.tabGroups}
+              </Link>
               <Button variant="ghost" size="icon" onClick={toggle} aria-label={t.nav.toggleTheme}>
                 {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>

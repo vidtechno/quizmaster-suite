@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      groups: {
+        Row: {
+          created_at: string
+          creator_id: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -79,6 +106,7 @@ export type Database = {
       results: {
         Row: {
           answers_log: Json
+          archived: boolean
           completed_at: string
           id: string
           score: number
@@ -89,6 +117,7 @@ export type Database = {
         }
         Insert: {
           answers_log?: Json
+          archived?: boolean
           completed_at?: string
           id?: string
           score: number
@@ -99,6 +128,7 @@ export type Database = {
         }
         Update: {
           answers_log?: Json
+          archived?: boolean
           completed_at?: string
           id?: string
           score?: number
@@ -123,6 +153,7 @@ export type Database = {
           created_at: string
           creator_id: string
           description: string | null
+          group_id: string | null
           id: string
           is_public: boolean
           max_attempts: number
@@ -136,6 +167,7 @@ export type Database = {
           created_at?: string
           creator_id: string
           description?: string | null
+          group_id?: string | null
           id?: string
           is_public?: boolean
           max_attempts?: number
@@ -149,6 +181,7 @@ export type Database = {
           created_at?: string
           creator_id?: string
           description?: string | null
+          group_id?: string | null
           id?: string
           is_public?: boolean
           max_attempts?: number
@@ -157,14 +190,22 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tests_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_access_code: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
