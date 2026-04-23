@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Check, AlertCircle } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Trash2, Check, AlertCircle, Info } from "lucide-react";
 import { HelpHint } from "@/components/HelpHint";
 import { t } from "@/lib/i18n";
 import { toast } from "sonner";
@@ -24,34 +25,34 @@ export type TestDraft = {
   is_public: boolean;
   access_code: string;
   max_attempts: number;
+  group_id: string | null;
 };
+
+export type GroupOption = { id: string; name: string };
 
 type Props = {
   initialTest: TestDraft;
   initialQuestions: QuestionDraft[];
   submitLabel: string;
+  groups: GroupOption[];
   onSubmit: (test: TestDraft, questions: QuestionDraft[]) => Promise<void>;
 };
 
 type FieldErrors = {
   title?: boolean;
-  accessCode?: boolean;
+  group?: boolean;
   questions: Array<{ text?: boolean; options?: boolean[] }>;
 };
 
 const errBorder = "border-destructive ring-1 ring-destructive/40 focus-visible:ring-destructive";
 
-export function QuizEditor({ initialTest, initialQuestions, submitLabel, onSubmit }: Props) {
+export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups, onSubmit }: Props) {
   const [test, setTest] = useState<TestDraft>(initialTest);
   const [questions, setQuestions] = useState<QuestionDraft[]>(
     initialQuestions.length ? initialQuestions : [{ question_text: "", options: ["", "", "", ""], correct_answer_index: 0 }],
   );
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({ questions: [] });
-
-  function clearError(path: () => void) {
-    path();
-  }
 
   function updateQ(idx: number, patch: Partial<QuestionDraft>) {
     setQuestions((qs) => qs.map((q, i) => (i === idx ? { ...q, ...patch } : q)));
@@ -94,9 +95,9 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, onSubmi
       newErrs.title = true;
       if (!firstInvalidId) firstInvalidId = "title";
     }
-    if (!test.is_public && !test.access_code.trim()) {
-      newErrs.accessCode = true;
-      if (!firstInvalidId) firstInvalidId = "code";
+    if (!test.is_public && !test.group_id) {
+      newErrs.group = true;
+      if (!firstInvalidId) firstInvalidId = "group-trigger";
     }
 
     questions.forEach((q, qi) => {
@@ -120,15 +121,13 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, onSubmi
 
     const hasError =
       newErrs.title ||
-      newErrs.accessCode ||
+      newErrs.group ||
       newErrs.questions.some((q) => q.text || q.options?.some(Boolean));
 
     if (hasError) {
-      if (newErrs.title || newErrs.accessCode) {
-        toast.error(newErrs.title ? t.validate.needTitle : t.validate.needCode);
-      } else {
-        toast.error(t.validate.needFields);
-      }
+      if (newErrs.title) toast.error(t.validate.needTitle);
+      else if (newErrs.group) toast.error(t.validate.needGroup);
+      else toast.error(t.validate.needFields);
       if (firstInvalidId) {
         setTimeout(() => {
           const el = document.getElementById(firstInvalidId!);
@@ -168,7 +167,7 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, onSubmi
               value={test.title}
               onChange={(e) => {
                 setTest({ ...test, title: e.target.value });
-                if (errors.title) clearError(() => setErrors((er) => ({ ...er, title: false })));
+                if (errors.title) setErrors((er) => ({ ...er, title: false }));
               }}
               placeholder={t.editor.titlePh}
               className={errors.title ? errBorder : ""}
@@ -244,30 +243,44 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, onSubmi
             <Switch
               checked={test.is_public}
               onCheckedChange={(v) => {
-                setTest({ ...test, is_public: v });
-                if (v) setErrors((er) => ({ ...er, accessCode: false }));
+                // preserve group_id when switching back; clear group err when public
+                setTest({ ...test, is_public: v, group_id: v ? null : test.group_id });
+                if (v) setErrors((er) => ({ ...er, group: false }));
               }}
             />
           </div>
 
           {!test.is_public && (
-            <div className="md:col-span-2">
-              <div className="mb-1.5 flex items-center gap-1.5">
-                <Label htmlFor="code">{t.editor.codeLabel}</Label>
-                <HelpHint text={t.editor.help.code} />
+            <div className="md:col-span-2 space-y-3">
+              <div>
+                <div className="mb-1.5 flex items-center gap-1.5">
+                  <Label htmlFor="group-trigger">{t.editor.groupLabel}</Label>
+                  <HelpHint text={t.editor.help.group} />
+                </div>
+                <Select
+                  value={test.group_id ?? undefined}
+                  onValueChange={(v) => {
+                    setTest({ ...test, group_id: v });
+                    setErrors((er) => ({ ...er, group: false }));
+                  }}
+                >
+                  <SelectTrigger id="group-trigger" className={errors.group ? errBorder : ""} aria-invalid={!!errors.group}>
+                    <SelectValue placeholder={t.editor.groupPlaceholder} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {groups.map((g) => (
+                      <SelectItem key={g.id} value={g.id}>
+                        {g.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.group && <FieldError>{t.validate.fieldRequired}</FieldError>}
               </div>
-              <Input
-                id="code"
-                value={test.access_code}
-                onChange={(e) => {
-                  setTest({ ...test, access_code: e.target.value });
-                  if (errors.accessCode) setErrors((er) => ({ ...er, accessCode: false }));
-                }}
-                placeholder={t.editor.codePh}
-                className={errors.accessCode ? errBorder : ""}
-                aria-invalid={!!errors.accessCode}
-              />
-              {errors.accessCode && <FieldError>{t.validate.fieldRequired}</FieldError>}
+              <div className="flex items-start gap-2 rounded-lg border border-accent/30 bg-accent/5 p-3 text-xs text-muted-foreground">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                <p>{t.editor.help.autoCode}</p>
+              </div>
             </div>
           )}
         </div>
