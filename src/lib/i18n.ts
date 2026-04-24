@@ -1,7 +1,7 @@
 // Uzbek (Latin) UI strings — single source of truth for the interface.
 export const t = {
   // ---- Brand & shared ----
-  brand: "Quizly",
+  brand: "MegaPanel.uz",
   tagline: "Aqlli testlar, yorqin natijalar.",
   loading: "Yuklanmoqda…",
   back: "Orqaga",
@@ -37,7 +37,7 @@ export const t = {
 
   // ---- Auth modal ----
   authModal: {
-    title: "Quizly hisobiga kiring",
+    title: "MegaPanel.uz hisobiga kiring",
     subtitle: "Davom etish uchun usulni tanlang",
     loginCard: {
       title: "Kirish",
@@ -53,7 +53,7 @@ export const t = {
 
   // ---- Login page ----
   login: {
-    metaTitle: "Kirish — Quizly",
+    metaTitle: "Kirish — MegaPanel.uz",
     title: "Yana xush kelibsiz",
     subtitle: "Telefon raqam va parol bilan kiring.",
     phone: "Telefon raqam",
@@ -68,9 +68,9 @@ export const t = {
 
   // ---- Signup page ----
   signup: {
-    metaTitle: "Ro'yxatdan o'tish — Quizly",
+    metaTitle: "Ro'yxatdan o'tish — MegaPanel.uz",
     title: "Yangi hisob ochish",
-    subtitle: "30 soniyada Quizly'da boshlang.",
+    subtitle: "30 soniyada MegaPanel.uz'da boshlang.",
     fullName: "To'liq ism",
     username: "Foydalanuvchi nomi",
     usernameHint: "masalan, anvar_t",
@@ -79,7 +79,7 @@ export const t = {
     password: "Parol",
     submit: "Hisob yaratish",
     submitting: "Yaratilmoqda…",
-    success: "Quizly'ga xush kelibsiz!",
+    success: "MegaPanel.uz'ga xush kelibsiz!",
     haveAccount: "Hisobingiz bormi?",
     login: "Kirish",
     errUsernameShort: "Foydalanuvchi nomi kamida 3 ta belgidan iborat bo'lishi kerak",
@@ -99,7 +99,7 @@ export const t = {
     ctaPrimary: "Bepul boshlash",
     ctaSecondary: "Testlarni ko'rish",
     featuresTitle: "Hammasi siz uchun tayyor",
-    featuresSub: "Sinfdagi mashqdan tortib jiddiy imtihongacha — Quizly tafsilotlarni o'z zimmasiga oladi.",
+    featuresSub: "Sinfdagi mashqdan tortib jiddiy imtihongacha — MegaPanel.uz tafsilotlarni o'z zimmasiga oladi.",
     features: [
       { title: "Tezkor konstruktor", desc: "Ko'p tanlovli savollarni daqiqalarda tuzing. Drag-and-drop, real-time saqlanish." },
       { title: "Aralashtirish", desc: "Har bir urinishda savol va variantlar tartibi aralashadi." },
@@ -111,12 +111,12 @@ export const t = {
     ctaTitle: "Birinchi testingizni hoziroq yarating",
     ctaSub: "Ro'yxatdan o'tish 30 soniya. SMS yoki email tasdiqlash kerak emas.",
     ctaButton: "Hisob ochish",
-    footer: (year: number) => `Mehr bilan yaratilgan · Quizly © ${year}`,
+    footer: (year: number) => `Mehr bilan yaratilgan · MegaPanel.uz © ${year}`,
   },
 
   // ---- Dashboard ----
   dashboard: {
-    metaTitle: "Boshqaruv paneli — Quizly",
+    metaTitle: "Boshqaruv paneli — MegaPanel.uz",
     title: "Sizning testlaringiz",
     subtitle: "Testlar yarating, tahrirlang va natijalarni kuzating.",
     newQuiz: "Yangi test",
@@ -140,6 +140,7 @@ export const t = {
     statAttempts: "Urinishlar",
     statMembers: "A'zolar",
     forGroup: (name: string) => `Guruh: ${name}`,
+    forGroups: (n: number) => `${n} ta guruhda`,
     publicTrack: "Ochiq",
     enterCode: "Kodni kiriting",
     enterCodeDesc: "Sizga berilgan kirish kodi orqali guruhga qo'shiling.",
@@ -150,25 +151,39 @@ export const t = {
     codeNotFound: "Bunday kod bilan test topilmadi",
     groupFull: "Guruh to'lib qolgan",
     searchTests: "Test qidirish…",
+    openGroup: "Ochish",
   },
 
   // ---- Profile edit ----
   profileEdit: {
+    metaTitle: "Profilni tahrirlash — MegaPanel.uz",
     title: "Profilni tahrirlash",
+    subtitle: "Ma'lumotlaringizni va profil rasmingizni yangilang.",
     fullName: "To'liq ism",
     username: "Foydalanuvchi nomi",
     phone: "Telefon raqam",
+    bio: "O'zingiz haqingizda",
+    bioPh: "Qisqacha tanishtiring — kasbingiz, qiziqishlaringiz…",
+    bioHint: "Profilingizda ko'rinadigan qisqa tanishtiruv (ixtiyoriy).",
+    avatar: "Profil rasmi",
+    avatarHint: "JPG, PNG yoki WebP. Maks. 2 MB.",
+    upload: "Rasm yuklash",
+    uploading: "Yuklanmoqda…",
+    remove: "Rasmni olib tashlash",
     save: "Saqlash",
     saving: "Saqlanmoqda…",
     saved: "Profil yangilandi",
     usernameTaken: "Bu foydalanuvchi nomi band",
+    usernameInvalid: "Faqat harflar, raqamlar va _ ishlatish mumkin",
+    fileTooBig: "Fayl 2 MB dan katta bo'lmasligi kerak",
+    badType: "Faqat JPG, PNG yoki WebP qo'llab-quvvatlanadi",
   },
 
   // ---- Groups ----
   groups: {
-    metaTitle: "Guruhlar — Quizly",
+    metaTitle: "Guruhlar — MegaPanel.uz",
     title: "Sizning guruhlaringiz",
-    subtitle: "Guruhlar — bu sizning sinflaringiz. Har bir yopiq test bitta guruhga bog'lanadi.",
+    subtitle: "Guruhlar — bu sizning sinflaringiz. Bitta testni bir necha guruhga ulashingiz mumkin.",
     newGroup: "Yangi guruh",
     emptyTitle: "Hali guruhlar yo'q",
     emptyDesc: "Guruhlar o'quvchilaringizni tartiblash va natijalarni aniq tahlil qilish uchun kerak.",
@@ -192,7 +207,7 @@ export const t = {
     noActiveTest: "Faol yopiq test yo'q",
     needGroupTitle: "Avval guruh yarating",
     needGroupDesc: "Yopiq test yaratish uchun kamida bitta guruh kerak.",
-    helpWhy: "Guruhlar — bu sizning sinflaringiz. Har bir yopiq test bitta guruhga bog'lanadi va o'sha guruh uchun avtomatik kirish kodi yaratiladi.",
+    helpWhy: "Guruhlar — bu sizning sinflaringiz. Bitta yopiq testni bir necha guruhga ulashingiz mumkin va har bir guruh uchun avtomatik kirish kodi yaratiladi.",
     code: "Kirish kodi",
     copyCode: "Nusxa olish",
     codeCopied: "Kirish kodi nusxalandi",
@@ -216,7 +231,7 @@ export const t = {
     noMembers: "Hali a'zolar yo'q. Kirish kodini ulashing yoki qo'lda qo'shing.",
     userNotFound: "Bunday foydalanuvchi topilmadi",
     backToGroups: "Guruhlarga qaytish",
-    detailMetaTitle: (name: string) => `${name} — Guruh — Quizly`,
+    detailMetaTitle: (name: string) => `${name} — Guruh — MegaPanel.uz`,
     statsTitle: "Guruh statistikasi",
     activity: "So'nggi faollik",
     noActivity: "Hali test ishlanmagan",
@@ -231,11 +246,12 @@ export const t = {
     closeDetail: "Yopish",
     linkedTests: "Ulangan testlar",
     noLinkedTests: "Bu guruhga test ulanmagan",
+    uniqueTakers: "Test ishlaganlar",
   },
 
   // ---- Explore ----
   explore: {
-    metaTitle: "Testlarni ko'rish — Quizly",
+    metaTitle: "Testlarni ko'rish — MegaPanel.uz",
     title: "Ochiq testlar",
     subtitle: "Test ishlang, reytingda yuqorilang, yangi narsa o'rganing.",
     empty: "Hali ochiq testlar yo'q. Birinchi bo'lib yarating!",
@@ -266,6 +282,8 @@ export const t = {
     questionPh: "Savol matnini kiriting?",
     optionsHint: "Variantlar · to'g'ri javobni belgilash uchun belgini bosing",
     optionPh: (letter: string) => `${letter} varianti`,
+    explanationLabel: "Izoh (ixtiyoriy)",
+    explanationPh: "To'g'ri javob nima uchun shundayligini tushuntiring…",
     saving: "Saqlanmoqda…",
     help: {
       title: "Test ro'yxatlarda va izlovda shu sarlavha bilan ko'rinadi.",
@@ -275,8 +293,12 @@ export const t = {
       random: "Yoqilsa, har bir urinishda savollar va variantlar tartibi aralashtiriladi. Bu nusxa ko'chirishni qiyinlashtiradi.",
       public: "Ochiq testlar 'Ochiq testlar' bo'limida ro'yxatda chiqadi va umumiy reytingga ega bo'ladi. Yopiq testlar faqat kirish kodi bilan ishlanadi.",
       code: "Yopiq testga kirish uchun talabalar kiritadigan maxfiy kod.",
-      group: "Yopiq testlar guruhga bog'lanadi. Bir guruhda bir vaqtda faqat bitta yopiq test bo'lishi mumkin.",
+      group: "Yopiq testni bir nechta guruhga ulashingiz mumkin. Har bir guruh a'zosi alohida limit bilan ishtirok etadi.",
       autoCode: "Kirish kodi avtomatik yaratiladi va o'quvchilarga ulashiladi.",
+      explanation:
+        "Har bir savolga ixtiyoriy izoh qo'shing. O'quvchi testni tugatgach, 'Ko'rib chiqish' bosqichida bu izohni ko'radi va xatosini tushunadi.",
+      difficulty:
+        "Qiyinlik darajasi avtomatik hisoblanadi: kamida 5 ta urinishdan so'ng — Oson (<30% xato), O'rta (30–60%) yoki Qiyin (>60%). Yangi savollar — 'Yangi'.",
     },
     groupLabel: "Guruhlar",
     groupPlaceholder: "Guruh tanlang",
@@ -286,18 +308,32 @@ export const t = {
     publicNoGroup: "Ochiq test — guruh shart emas",
     privacyChangeWarn: "Diqqat: Ochiqdan Yopiqqa o'tsangiz, mavjud natijalar arxivlanadi.",
     questionsPerAttemptLabel: "Urinishda nechta savol ko'rinsin",
-    questionsPerAttemptHint: "Bo'sh qoldirsangiz — barcha savollar ko'rinadi. Aks holda berilgan miqdordagi savollar tasodifiy tanlanadi.",
+    questionsPerAttemptHint:
+      "Bo'sh qoldirsangiz — barcha savollar ko'rinadi. Aks holda har bir urinishda berilgan miqdordagi savollar tasodifiy tanlanadi (masalan, 100 ta savoldan 30 tasi).",
     questionsPerAttemptPh: "Masalan, 30",
   },
 
+  // ---- Difficulty levels (auto-tagged from error_rate) ----
+  difficulty: {
+    label: "Qiyinlik",
+    new: "Yangi",
+    easy: "Oson",
+    medium: "O'rta",
+    hard: "Qiyin",
+    hint: (used: number) =>
+      used < 5
+        ? `Yangi: hali yetarli ma'lumot yo'q (${used}/5 urinish)`
+        : "Avtomatik hisoblangan: kamida 5 urinishdan so'ng xato darajasi bo'yicha",
+  },
+
   newQuiz: {
-    metaTitle: "Yangi test — Quizly",
+    metaTitle: "Yangi test — MegaPanel.uz",
     title: "Yangi test yaratish",
     submit: "Testni yaratish",
     success: "Test yaratildi!",
   },
   editQuiz: {
-    metaTitle: "Testni tahrirlash — Quizly",
+    metaTitle: "Testni tahrirlash — MegaPanel.uz",
     title: "Testni tahrirlash",
     submit: "O'zgarishlarni saqlash",
     success: "Saqlandi!",
@@ -316,7 +352,7 @@ export const t = {
 
   // ---- Quiz player ----
   player: {
-    metaTitle: "Test — Quizly",
+    metaTitle: "Test — MegaPanel.uz",
     notFound: "Test topilmadi",
     needLogin: "Testni ishlash uchun tizimga kiring",
     noAttemptsLeft: (n: number) => `Siz barcha ${n} ta urinishni ishlatib bo'ldingiz`,
@@ -339,6 +375,7 @@ export const t = {
     yourAnswer: "Sizning javobingiz",
     notAnswered: "javob berilmagan",
     correctIs: "To'g'ri javob",
+    explanation: "Izoh",
     review: "Ko'rib chiqish",
     backToExplore: "Testlarga qaytish",
     backToDashboard: "Boshqaruvga qaytish",
@@ -352,12 +389,13 @@ export const t = {
     publicTag: "Ochiq",
     privateTag: "Yopiq",
     randomTag: "Aralash",
+    subsetTag: (n: number, total: number) => `${n} / ${total} savol`,
     badgeMin: (n: number) => `${n} daqiqa`,
   },
 
   // ---- Results page ----
   results: {
-    metaTitle: "Natijalar — Quizly",
+    metaTitle: "Natijalar — MegaPanel.uz",
     backToDashboard: "Boshqaruv paneliga qaytish",
     subtitle: "Jonli natijalar — talabalar yuborganda yangilanadi.",
     statAttempts: "Urinishlar",
@@ -374,11 +412,15 @@ export const t = {
     correct: "To'g'ri",
     onlyCreator: "Faqat muallif barcha natijalarni ko'ra oladi",
     attemptN: (n: number) => `${n}-urinish`,
+    questionsTab: "Savollar tahlili",
+    attemptsTab: "Urinishlar",
+    errorRate: "Xato darajasi",
+    timesAnswered: (n: number) => `${n} marta javoblangan`,
   },
 
   // ---- Profile page ----
   profile: {
-    metaTitle: "Mening profilim — Quizly",
+    metaTitle: "Mening profilim — MegaPanel.uz",
     title: "Mening profilim",
     myAttempts: "Mening urinishlarim",
     noAttempts: "Hali test ishlamagansiz. Ochiq testlardan boshlang!",
@@ -393,6 +435,15 @@ export const t = {
     correctAnswers: "to'g'ri",
     wrongAnswers: "xato",
     edit: "Profilni tahrirlash",
+    bestScore: "Eng yaxshi",
+  },
+
+  // ---- Pagination ----
+  pagination: {
+    prev: "Oldingi",
+    next: "Keyingi",
+    range: (a: number, b: number, total: number) => `${a}–${b} / ${total}`,
+    perPage: "Sahifada 20 tadan ko'rsatiladi.",
   },
 
   // ---- Generic errors ----
