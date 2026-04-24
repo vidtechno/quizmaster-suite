@@ -81,6 +81,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
+          bio: string | null
           created_at: string
           full_name: string
           id: string
@@ -88,6 +90,8 @@ export type Database = {
           username: string
         }
         Insert: {
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           full_name: string
           id: string
@@ -95,6 +99,8 @@ export type Database = {
           username: string
         }
         Update: {
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           full_name?: string
           id?: string
@@ -105,8 +111,11 @@ export type Database = {
       }
       questions: {
         Row: {
+          attempts_count: number
           correct_answer_index: number
           created_at: string
+          error_rate: number
+          explanation: string | null
           id: string
           options: Json
           position: number
@@ -114,8 +123,11 @@ export type Database = {
           test_id: string
         }
         Insert: {
+          attempts_count?: number
           correct_answer_index: number
           created_at?: string
+          error_rate?: number
+          explanation?: string | null
           id?: string
           options: Json
           position?: number
@@ -123,8 +135,11 @@ export type Database = {
           test_id: string
         }
         Update: {
+          attempts_count?: number
           correct_answer_index?: number
           created_at?: string
+          error_rate?: number
+          explanation?: string | null
           id?: string
           options?: Json
           position?: number
@@ -352,6 +367,10 @@ export type Database = {
         }[]
       }
       join_group_by_code: { Args: { _code: string }; Returns: Json }
+      recompute_question_stats: {
+        Args: { _test_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
