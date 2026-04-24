@@ -235,6 +235,42 @@ export type Database = {
           },
         ]
       }
+      test_groups: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          test_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          test_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          test_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_groups_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_groups_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tests: {
         Row: {
           access_code: string | null
@@ -245,6 +281,7 @@ export type Database = {
           id: string
           is_public: boolean
           max_attempts: number
+          questions_per_attempt: number | null
           random_enabled: boolean
           time_limit: number
           title: string
@@ -259,6 +296,7 @@ export type Database = {
           id?: string
           is_public?: boolean
           max_attempts?: number
+          questions_per_attempt?: number | null
           random_enabled?: boolean
           time_limit?: number
           title: string
@@ -273,6 +311,7 @@ export type Database = {
           id?: string
           is_public?: boolean
           max_attempts?: number
+          questions_per_attempt?: number | null
           random_enabled?: boolean
           time_limit?: number
           title?: string
@@ -298,6 +337,20 @@ export type Database = {
         Returns: Json
       }
       generate_access_code: { Args: never; Returns: string }
+      get_group_member_stats: {
+        Args: { _group_id: string }
+        Returns: {
+          attempts_limit: number
+          avg_score: number
+          best_score: number
+          completed_count: number
+          full_name: string
+          joined_at: string
+          last_attempt_at: string
+          user_id: string
+          username: string
+        }[]
+      }
       join_group_by_code: { Args: { _code: string }; Returns: Json }
     }
     Enums: {
