@@ -221,6 +221,16 @@ export const t = {
     activity: "So'nggi faollik",
     noActivity: "Hali test ishlanmagan",
     viewAttempts: "Urinishlarni ko'rish",
+    avgScore: "O'rtacha natija",
+    bestScore: "Eng yaxshi",
+    completedCount: "Tugatilgan",
+    lastAttempt: "So'nggi urinish",
+    memberDetail: "A'zo bo'yicha statistika",
+    memberAttempts: (n: number) => `${n} ta urinish`,
+    noMemberAttempts: "Bu a'zo hali test ishlamagan",
+    closeDetail: "Yopish",
+    linkedTests: "Ulangan testlar",
+    noLinkedTests: "Bu guruhga test ulanmagan",
   },
 
   // ---- Explore ----
