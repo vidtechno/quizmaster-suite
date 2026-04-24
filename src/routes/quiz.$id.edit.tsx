@@ -66,6 +66,9 @@ function EditQuizPage() {
             question_text: q.question_text,
             options: Array.isArray(q.options) ? q.options : [],
             correct_answer_index: q.correct_answer_index,
+            explanation: q.explanation ?? "",
+            attempts_count: q.attempts_count ?? 0,
+            error_rate: Number(q.error_rate ?? 0),
           })),
         );
         const gs = await safeQuery(
