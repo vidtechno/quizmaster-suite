@@ -40,7 +40,6 @@ function NewQuizPage() {
   async function handleSubmit(test: TestDraft, questions: QuestionDraft[]) {
     if (!user) return;
     try {
-      // For private tests, generate an access code via DB function
       let accessCode: string | null = null;
       if (!test.is_public) {
         const { data: codeData, error: codeErr } = await supabase.rpc("generate_access_code");
@@ -61,19 +60,26 @@ function NewQuizPage() {
           random_enabled: test.random_enabled,
           is_public: test.is_public,
           access_code: accessCode,
-          group_id: test.is_public ? null : test.group_id,
+          // Legacy single-group column kept null; we use test_groups junction now.
+          group_id: null,
           max_attempts: test.max_attempts,
+          questions_per_attempt: test.questions_per_attempt,
         })
         .select("id")
         .single();
       if (error || !created) {
-        // Detect duplicate active test on same group
-        if (error?.code === "23505") {
-          toast.error(t.validate.duplicateActiveTest);
-        } else {
-          toast.error(t.err.saveFailed);
-        }
+        toast.error(t.err.saveFailed);
         return;
+      }
+
+      // Attach groups via test_groups junction
+      if (!test.is_public && test.group_ids.length > 0) {
+        const linkRows = test.group_ids.map((gid) => ({ test_id: created.id, group_id: gid }));
+        const { error: linkErr } = await supabase.from("test_groups").insert(linkRows);
+        if (linkErr) {
+          toast.error(t.err.saveFailed);
+          return;
+        }
       }
 
       const rows = questions.map((q, idx) => ({
@@ -116,7 +122,8 @@ function NewQuizPage() {
             is_public: true,
             access_code: "",
             max_attempts: 1,
-            group_id: null,
+            group_ids: [],
+            questions_per_attempt: null,
           }}
           initialQuestions={[]}
           submitLabel={t.newQuiz.submit}
