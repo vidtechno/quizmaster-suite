@@ -131,6 +131,7 @@ function EditQuizPage() {
         question_text: q.question_text.trim(),
         options: q.options.map((o) => o.trim()),
         correct_answer_index: q.correct_answer_index,
+        explanation: (q.explanation ?? "").trim() || null,
         position: idx,
       }));
       const ok2 = await safeMutation(() => supabase.from("questions").insert(rows));
