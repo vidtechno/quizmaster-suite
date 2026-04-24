@@ -268,11 +268,16 @@ export const t = {
       group: "Yopiq testlar guruhga bog'lanadi. Bir guruhda bir vaqtda faqat bitta yopiq test bo'lishi mumkin.",
       autoCode: "Kirish kodi avtomatik yaratiladi va o'quvchilarga ulashiladi.",
     },
-    groupLabel: "Guruh",
+    groupLabel: "Guruhlar",
     groupPlaceholder: "Guruh tanlang",
+    groupsAttachedHint: "Bir nechta guruhga ulashingiz mumkin",
+    groupsNoneAttached: "Guruhlar ulanmagan",
+    addGroup: "Guruh qo'shish",
     publicNoGroup: "Ochiq test — guruh shart emas",
     privacyChangeWarn: "Diqqat: Ochiqdan Yopiqqa o'tsangiz, mavjud natijalar arxivlanadi.",
-  },
+    questionsPerAttemptLabel: "Urinishda nechta savol ko'rinsin",
+    questionsPerAttemptHint: "Bo'sh qoldirsangiz — barcha savollar ko'rinadi. Aks holda berilgan miqdordagi savollar tasodifiy tanlanadi.",
+    questionsPerAttemptPh: "Masalan, 30",
 
   newQuiz: {
     metaTitle: "Yangi test — Quizly",
