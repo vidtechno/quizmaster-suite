@@ -41,6 +41,12 @@ function EditQuizPage() {
           toast.error(t.editQuiz.notYours);
           return navigate({ to: "/dashboard" });
         }
+
+        // Load attached groups via test_groups; fall back to legacy group_id.
+        const { data: tgs } = await supabase.from("test_groups").select("group_id").eq("test_id", id);
+        let groupIds = (tgs ?? []).map((r: any) => r.group_id);
+        if (groupIds.length === 0 && tt.group_id) groupIds = [tt.group_id];
+
         setTest({
           title: tt.title,
           description: tt.description ?? "",
@@ -49,8 +55,10 @@ function EditQuizPage() {
           is_public: tt.is_public,
           access_code: tt.access_code ?? "",
           max_attempts: tt.max_attempts,
-          group_id: tt.group_id ?? null,
+          group_ids: groupIds,
+          questions_per_attempt: (tt as any).questions_per_attempt ?? null,
         });
+
         const { data: qs } = await supabase.from("questions").select("*").eq("test_id", id).order("position");
         setQuestions(
           (qs ?? []).map((q: any) => ({
@@ -76,7 +84,6 @@ function EditQuizPage() {
   async function handleSubmit(td: TestDraft, qs: QuestionDraft[]) {
     if (!user) return;
     try {
-      // Need a fresh access code if turning private and don't have one yet
       let accessCode: string | null = td.access_code || null;
       if (!td.is_public && !accessCode) {
         const { data: codeData, error: codeErr } = await supabase.rpc("generate_access_code");
@@ -96,14 +103,22 @@ function EditQuizPage() {
           random_enabled: td.random_enabled,
           is_public: td.is_public,
           access_code: td.is_public ? null : accessCode,
-          group_id: td.is_public ? null : td.group_id,
+          group_id: null, // legacy: rely on test_groups
           max_attempts: td.max_attempts,
+          questions_per_attempt: td.questions_per_attempt,
         })
         .eq("id", id);
       if (updErr) {
-        if (updErr.code === "23505") toast.error(t.validate.duplicateActiveTest);
-        else toast.error(t.err.saveFailed);
+        toast.error(t.err.saveFailed);
         return;
+      }
+
+      // Sync test_groups: remove all then re-insert chosen ones (small set).
+      await safeMutation(() => supabase.from("test_groups").delete().eq("test_id", id));
+      if (!td.is_public && td.group_ids.length > 0) {
+        const rows = td.group_ids.map((gid) => ({ test_id: id, group_id: gid }));
+        const ok = await safeMutation(() => supabase.from("test_groups").insert(rows));
+        if (!ok) return;
       }
 
       // Replace questions: delete + insert (simple, reliable)

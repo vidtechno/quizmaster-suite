@@ -146,9 +146,22 @@ export const t = {
     join: "Qo'shilish",
     joining: "Qo'shilmoqda…",
     joined: "Guruhga qo'shildingiz!",
-    alreadyJoined: "Siz allaqachon bu guruhdaman",
+    alreadyJoined: "Siz allaqachon bu guruhdasiz",
     codeNotFound: "Bunday kod bilan test topilmadi",
     groupFull: "Guruh to'lib qolgan",
+    searchTests: "Test qidirish…",
+  },
+
+  // ---- Profile edit ----
+  profileEdit: {
+    title: "Profilni tahrirlash",
+    fullName: "To'liq ism",
+    username: "Foydalanuvchi nomi",
+    phone: "Telefon raqam",
+    save: "Saqlash",
+    saving: "Saqlanmoqda…",
+    saved: "Profil yangilandi",
+    usernameTaken: "Bu foydalanuvchi nomi band",
   },
 
   // ---- Groups ----
@@ -208,6 +221,16 @@ export const t = {
     activity: "So'nggi faollik",
     noActivity: "Hali test ishlanmagan",
     viewAttempts: "Urinishlarni ko'rish",
+    avgScore: "O'rtacha natija",
+    bestScore: "Eng yaxshi",
+    completedCount: "Tugatilgan",
+    lastAttempt: "So'nggi urinish",
+    memberDetail: "A'zo bo'yicha statistika",
+    memberAttempts: (n: number) => `${n} ta urinish`,
+    noMemberAttempts: "Bu a'zo hali test ishlamagan",
+    closeDetail: "Yopish",
+    linkedTests: "Ulangan testlar",
+    noLinkedTests: "Bu guruhga test ulanmagan",
   },
 
   // ---- Explore ----
@@ -255,10 +278,16 @@ export const t = {
       group: "Yopiq testlar guruhga bog'lanadi. Bir guruhda bir vaqtda faqat bitta yopiq test bo'lishi mumkin.",
       autoCode: "Kirish kodi avtomatik yaratiladi va o'quvchilarga ulashiladi.",
     },
-    groupLabel: "Guruh",
+    groupLabel: "Guruhlar",
     groupPlaceholder: "Guruh tanlang",
+    groupsAttachedHint: "Bir nechta guruhga ulashingiz mumkin",
+    groupsNoneAttached: "Guruhlar ulanmagan",
+    addGroup: "Guruh qo'shish",
     publicNoGroup: "Ochiq test — guruh shart emas",
     privacyChangeWarn: "Diqqat: Ochiqdan Yopiqqa o'tsangiz, mavjud natijalar arxivlanadi.",
+    questionsPerAttemptLabel: "Urinishda nechta savol ko'rinsin",
+    questionsPerAttemptHint: "Bo'sh qoldirsangiz — barcha savollar ko'rinadi. Aks holda berilgan miqdordagi savollar tasodifiy tanlanadi.",
+    questionsPerAttemptPh: "Masalan, 30",
   },
 
   newQuiz: {
@@ -363,6 +392,7 @@ export const t = {
     backToList: "Ro'yxatga qaytish",
     correctAnswers: "to'g'ri",
     wrongAnswers: "xato",
+    edit: "Profilni tahrirlash",
   },
 
   // ---- Generic errors ----
