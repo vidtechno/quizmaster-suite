@@ -278,6 +278,7 @@ export const t = {
     questionsPerAttemptLabel: "Urinishda nechta savol ko'rinsin",
     questionsPerAttemptHint: "Bo'sh qoldirsangiz — barcha savollar ko'rinadi. Aks holda berilgan miqdordagi savollar tasodifiy tanlanadi.",
     questionsPerAttemptPh: "Masalan, 30",
+  },
 
   newQuiz: {
     metaTitle: "Yangi test — Quizly",
