@@ -146,9 +146,22 @@ export const t = {
     join: "Qo'shilish",
     joining: "Qo'shilmoqda…",
     joined: "Guruhga qo'shildingiz!",
-    alreadyJoined: "Siz allaqachon bu guruhdaman",
+    alreadyJoined: "Siz allaqachon bu guruhdasiz",
     codeNotFound: "Bunday kod bilan test topilmadi",
     groupFull: "Guruh to'lib qolgan",
+    searchTests: "Test qidirish…",
+  },
+
+  // ---- Profile edit ----
+  profileEdit: {
+    title: "Profilni tahrirlash",
+    fullName: "To'liq ism",
+    username: "Foydalanuvchi nomi",
+    phone: "Telefon raqam",
+    save: "Saqlash",
+    saving: "Saqlanmoqda…",
+    saved: "Profil yangilandi",
+    usernameTaken: "Bu foydalanuvchi nomi band",
   },
 
   // ---- Groups ----
