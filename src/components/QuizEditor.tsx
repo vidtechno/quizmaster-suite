@@ -4,11 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Check, AlertCircle, Info } from "lucide-react";
+import { Plus, Trash2, Check, AlertCircle, Info, Users, X } from "lucide-react";
 import { HelpHint } from "@/components/HelpHint";
 import { t } from "@/lib/i18n";
 import { toast } from "sonner";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export type QuestionDraft = {
   id?: string;
@@ -25,7 +25,10 @@ export type TestDraft = {
   is_public: boolean;
   access_code: string;
   max_attempts: number;
-  group_id: string | null;
+  /** Multi-group attachments (replaces single group_id) */
+  group_ids: string[];
+  /** When set, only this many random questions are shown per attempt */
+  questions_per_attempt: number | null;
 };
 
 export type GroupOption = { id: string; name: string };
@@ -87,6 +90,14 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups,
     setErrors((e) => ({ ...e, questions: e.questions.filter((_, i) => i !== idx) }));
   }
 
+  function toggleGroup(id: string) {
+    setTest((tt) => {
+      const next = tt.group_ids.includes(id) ? tt.group_ids.filter((x) => x !== id) : [...tt.group_ids, id];
+      return { ...tt, group_ids: next };
+    });
+    setErrors((er) => ({ ...er, group: false }));
+  }
+
   function validate(): boolean {
     const newErrs: FieldErrors = { questions: questions.map(() => ({})) };
     let firstInvalidId: string | null = null;
@@ -95,7 +106,7 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups,
       newErrs.title = true;
       if (!firstInvalidId) firstInvalidId = "title";
     }
-    if (!test.is_public && !test.group_id) {
+    if (!test.is_public && test.group_ids.length === 0) {
       newErrs.group = true;
       if (!firstInvalidId) firstInvalidId = "group-trigger";
     }
@@ -143,6 +154,12 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups,
 
   async function handleSubmit() {
     if (!validate()) return;
+    // Clamp questions_per_attempt at the count of questions
+    const qpa = test.questions_per_attempt;
+    if (qpa != null && qpa > questions.length) {
+      setTest({ ...test, questions_per_attempt: null });
+      toast.error("Berilgan miqdor savollar sonidan ko'p — barcha savollar ishlatiladi");
+    }
     setSaving(true);
     try {
       await onSubmit(test, questions);
@@ -150,6 +167,8 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups,
       setSaving(false);
     }
   }
+
+  const selectedGroups = groups.filter((g) => test.group_ids.includes(g.id));
 
   return (
     <div className="space-y-8">
@@ -218,6 +237,26 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups,
             />
           </div>
 
+          <div className="md:col-span-2">
+            <div className="mb-1.5 flex items-center gap-1.5">
+              <Label htmlFor="qpa">{t.editor.questionsPerAttemptLabel}</Label>
+              <HelpHint text={t.editor.questionsPerAttemptHint} />
+            </div>
+            <Input
+              id="qpa"
+              type="number"
+              min={1}
+              max={500}
+              value={test.questions_per_attempt ?? ""}
+              onChange={(e) => {
+                const v = e.target.value.trim();
+                setTest({ ...test, questions_per_attempt: v ? Math.max(1, parseInt(v) || 1) : null });
+              }}
+              placeholder={t.editor.questionsPerAttemptPh}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">{t.editor.questionsPerAttemptHint}</p>
+          </div>
+
           <div className="flex items-start justify-between gap-3 rounded-lg border p-3">
             <div>
               <div className="flex items-center gap-1.5">
@@ -243,8 +282,7 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups,
             <Switch
               checked={test.is_public}
               onCheckedChange={(v) => {
-                // preserve group_id when switching back; clear group err when public
-                setTest({ ...test, is_public: v, group_id: v ? null : test.group_id });
+                setTest({ ...test, is_public: v });
                 if (v) setErrors((er) => ({ ...er, group: false }));
               }}
             />
@@ -257,25 +295,69 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups,
                   <Label htmlFor="group-trigger">{t.editor.groupLabel}</Label>
                   <HelpHint text={t.editor.help.group} />
                 </div>
-                <Select
-                  value={test.group_id ?? undefined}
-                  onValueChange={(v) => {
-                    setTest({ ...test, group_id: v });
-                    setErrors((er) => ({ ...er, group: false }));
-                  }}
-                >
-                  <SelectTrigger id="group-trigger" className={errors.group ? errBorder : ""} aria-invalid={!!errors.group}>
-                    <SelectValue placeholder={t.editor.groupPlaceholder} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {groups.map((g) => (
-                      <SelectItem key={g.id} value={g.id}>
-                        {g.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      id="group-trigger"
+                      type="button"
+                      aria-invalid={!!errors.group}
+                      className={`flex w-full min-h-10 flex-wrap items-center gap-1.5 rounded-md border bg-background px-3 py-2 text-left text-sm ${
+                        errors.group ? errBorder : "border-input"
+                      }`}
+                    >
+                      {selectedGroups.length === 0 ? (
+                        <span className="text-muted-foreground">{t.editor.groupPlaceholder}</span>
+                      ) : (
+                        selectedGroups.map((g) => (
+                          <span
+                            key={g.id}
+                            className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary"
+                          >
+                            <Users className="h-3 w-3" />
+                            {g.name}
+                            <X
+                              className="h-3 w-3 cursor-pointer hover:text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleGroup(g.id);
+                              }}
+                            />
+                          </span>
+                        ))
+                      )}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1" align="start">
+                    {groups.length === 0 ? (
+                      <p className="px-3 py-4 text-sm text-muted-foreground">{t.groups.emptyTitle}</p>
+                    ) : (
+                      <div className="max-h-64 overflow-auto">
+                        {groups.map((g) => {
+                          const checked = test.group_ids.includes(g.id);
+                          return (
+                            <button
+                              key={g.id}
+                              type="button"
+                              onClick={() => toggleGroup(g.id)}
+                              className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-sm hover:bg-muted"
+                            >
+                              <span
+                                className={`flex h-4 w-4 items-center justify-center rounded border ${
+                                  checked ? "border-primary bg-primary text-primary-foreground" : "border-input"
+                                }`}
+                              >
+                                {checked && <Check className="h-3 w-3" />}
+                              </span>
+                              {g.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </PopoverContent>
+                </Popover>
                 {errors.group && <FieldError>{t.validate.fieldRequired}</FieldError>}
+                <p className="mt-1 text-xs text-muted-foreground">{t.editor.groupsAttachedHint}</p>
               </div>
               <div className="flex items-start gap-2 rounded-lg border border-accent/30 bg-accent/5 p-3 text-xs text-muted-foreground">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
