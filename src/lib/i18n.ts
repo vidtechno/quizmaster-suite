@@ -392,6 +392,7 @@ export const t = {
     backToList: "Ro'yxatga qaytish",
     correctAnswers: "to'g'ri",
     wrongAnswers: "xato",
+    edit: "Profilni tahrirlash",
   },
 
   // ---- Generic errors ----
