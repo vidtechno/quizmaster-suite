@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as GroupsRouteImport } from './routes/groups'
 import { Route as ExploreRouteImport } from './routes/explore'
@@ -17,12 +18,18 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as QuizNewRouteImport } from './routes/quiz.new'
 import { Route as QuizIdRouteImport } from './routes/quiz.$id'
+import { Route as GroupsIdRouteImport } from './routes/groups.$id'
 import { Route as QuizIdResultsRouteImport } from './routes/quiz.$id.results'
 import { Route as QuizIdEditRouteImport } from './routes/quiz.$id.edit'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -60,6 +67,11 @@ const QuizIdRoute = QuizIdRouteImport.update({
   path: '/quiz/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GroupsIdRoute = GroupsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => GroupsRoute,
+} as any)
 const QuizIdResultsRoute = QuizIdResultsRouteImport.update({
   id: '/results',
   path: '/results',
@@ -75,9 +87,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
-  '/groups': typeof GroupsRoute
+  '/groups': typeof GroupsRouteWithChildren
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
+  '/groups/$id': typeof GroupsIdRoute
   '/quiz/$id': typeof QuizIdRouteWithChildren
   '/quiz/new': typeof QuizNewRoute
   '/quiz/$id/edit': typeof QuizIdEditRoute
@@ -87,9 +101,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
-  '/groups': typeof GroupsRoute
+  '/groups': typeof GroupsRouteWithChildren
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
+  '/groups/$id': typeof GroupsIdRoute
   '/quiz/$id': typeof QuizIdRouteWithChildren
   '/quiz/new': typeof QuizNewRoute
   '/quiz/$id/edit': typeof QuizIdEditRoute
@@ -100,9 +116,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
-  '/groups': typeof GroupsRoute
+  '/groups': typeof GroupsRouteWithChildren
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
+  '/groups/$id': typeof GroupsIdRoute
   '/quiz/$id': typeof QuizIdRouteWithChildren
   '/quiz/new': typeof QuizNewRoute
   '/quiz/$id/edit': typeof QuizIdEditRoute
@@ -116,7 +134,9 @@ export interface FileRouteTypes {
     | '/explore'
     | '/groups'
     | '/login'
+    | '/profile'
     | '/signup'
+    | '/groups/$id'
     | '/quiz/$id'
     | '/quiz/new'
     | '/quiz/$id/edit'
@@ -128,7 +148,9 @@ export interface FileRouteTypes {
     | '/explore'
     | '/groups'
     | '/login'
+    | '/profile'
     | '/signup'
+    | '/groups/$id'
     | '/quiz/$id'
     | '/quiz/new'
     | '/quiz/$id/edit'
@@ -140,7 +162,9 @@ export interface FileRouteTypes {
     | '/explore'
     | '/groups'
     | '/login'
+    | '/profile'
     | '/signup'
+    | '/groups/$id'
     | '/quiz/$id'
     | '/quiz/new'
     | '/quiz/$id/edit'
@@ -151,8 +175,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   ExploreRoute: typeof ExploreRoute
-  GroupsRoute: typeof GroupsRoute
+  GroupsRoute: typeof GroupsRouteWithChildren
   LoginRoute: typeof LoginRoute
+  ProfileRoute: typeof ProfileRoute
   SignupRoute: typeof SignupRoute
   QuizIdRoute: typeof QuizIdRouteWithChildren
   QuizNewRoute: typeof QuizNewRoute
@@ -165,6 +190,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -216,6 +248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QuizIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/groups/$id': {
+      id: '/groups/$id'
+      path: '/$id'
+      fullPath: '/groups/$id'
+      preLoaderRoute: typeof GroupsIdRouteImport
+      parentRoute: typeof GroupsRoute
+    }
     '/quiz/$id/results': {
       id: '/quiz/$id/results'
       path: '/results'
@@ -232,6 +271,17 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface GroupsRouteChildren {
+  GroupsIdRoute: typeof GroupsIdRoute
+}
+
+const GroupsRouteChildren: GroupsRouteChildren = {
+  GroupsIdRoute: GroupsIdRoute,
+}
+
+const GroupsRouteWithChildren =
+  GroupsRoute._addFileChildren(GroupsRouteChildren)
 
 interface QuizIdRouteChildren {
   QuizIdEditRoute: typeof QuizIdEditRoute
@@ -250,8 +300,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   ExploreRoute: ExploreRoute,
-  GroupsRoute: GroupsRoute,
+  GroupsRoute: GroupsRouteWithChildren,
   LoginRoute: LoginRoute,
+  ProfileRoute: ProfileRoute,
   SignupRoute: SignupRoute,
   QuizIdRoute: QuizIdRouteWithChildren,
   QuizNewRoute: QuizNewRoute,

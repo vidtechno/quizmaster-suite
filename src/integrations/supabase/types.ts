@@ -14,12 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      group_members: {
+        Row: {
+          attempts_limit: number
+          group_id: string
+          id: string
+          joined_at: string
+          joined_via: string
+          user_id: string
+        }
+        Insert: {
+          attempts_limit?: number
+          group_id: string
+          id?: string
+          joined_at?: string
+          joined_via?: string
+          user_id: string
+        }
+        Update: {
+          attempts_limit?: number
+          group_id?: string
+          id?: string
+          joined_at?: string
+          joined_via?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       groups: {
         Row: {
           created_at: string
           creator_id: string
           description: string | null
           id: string
+          member_limit: number | null
           name: string
           updated_at: string
         }
@@ -28,6 +64,7 @@ export type Database = {
           creator_id: string
           description?: string | null
           id?: string
+          member_limit?: number | null
           name: string
           updated_at?: string
         }
@@ -36,6 +73,7 @@ export type Database = {
           creator_id?: string
           description?: string | null
           id?: string
+          member_limit?: number | null
           name?: string
           updated_at?: string
         }
@@ -147,6 +185,56 @@ export type Database = {
           },
         ]
       }
+      test_attempts: {
+        Row: {
+          answers_log: Json
+          attempt_number: number
+          id: string
+          score: number
+          started_at: string
+          status: string
+          submitted_at: string | null
+          test_id: string
+          time_spent: number
+          total_questions: number
+          user_id: string
+        }
+        Insert: {
+          answers_log?: Json
+          attempt_number?: number
+          id?: string
+          score?: number
+          started_at?: string
+          status?: string
+          submitted_at?: string | null
+          test_id: string
+          time_spent?: number
+          total_questions?: number
+          user_id: string
+        }
+        Update: {
+          answers_log?: Json
+          attempt_number?: number
+          id?: string
+          score?: number
+          started_at?: string
+          status?: string
+          submitted_at?: string | null
+          test_id?: string
+          time_spent?: number
+          total_questions?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_attempts_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tests: {
         Row: {
           access_code: string | null
@@ -205,7 +293,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_user_attempt_test: {
+        Args: { _test_id: string; _user_id: string }
+        Returns: Json
+      }
       generate_access_code: { Args: never; Returns: string }
+      join_group_by_code: { Args: { _code: string }; Returns: Json }
     }
     Enums: {
       [_ in never]: never
