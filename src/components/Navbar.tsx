@@ -27,7 +27,7 @@ export function Navbar() {
           <span className="relative flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-hero text-primary-foreground shadow-glow transition-transform group-hover:scale-105">
             <Sparkles className="h-4.5 w-4.5" strokeWidth={2.5} />
           </span>
-          <span className="font-display text-xl font-bold tracking-tight">Quizly</span>
+          <span className="font-display text-xl font-bold tracking-tight">{t.brand}</span>
         </Link>
         <nav className="flex items-center gap-0.5 sm:gap-1">
           <NavItem to="/explore" icon={Compass} label={t.nav.explore} />
