@@ -9,12 +9,17 @@ import { HelpHint } from "@/components/HelpHint";
 import { t } from "@/lib/i18n";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { getDifficulty, difficultyLabel, difficultyToneClass } from "@/lib/difficulty";
 
 export type QuestionDraft = {
   id?: string;
   question_text: string;
   options: string[];
   correct_answer_index: number;
+  explanation?: string | null;
+  /** Cached stats — used to render difficulty badge in editor only. */
+  attempts_count?: number;
+  error_rate?: number;
 };
 
 export type TestDraft = {
@@ -52,7 +57,9 @@ const errBorder = "border-destructive ring-1 ring-destructive/40 focus-visible:r
 export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups, onSubmit }: Props) {
   const [test, setTest] = useState<TestDraft>(initialTest);
   const [questions, setQuestions] = useState<QuestionDraft[]>(
-    initialQuestions.length ? initialQuestions : [{ question_text: "", options: ["", "", "", ""], correct_answer_index: 0 }],
+    initialQuestions.length
+      ? initialQuestions
+      : [{ question_text: "", options: ["", "", "", ""], correct_answer_index: 0, explanation: "" }],
   );
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({ questions: [] });
@@ -82,7 +89,10 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups,
     });
   }
   function addQ() {
-    setQuestions((qs) => [...qs, { question_text: "", options: ["", "", "", ""], correct_answer_index: 0 }]);
+    setQuestions((qs) => [
+      ...qs,
+      { question_text: "", options: ["", "", "", ""], correct_answer_index: 0, explanation: "" },
+    ]);
   }
   function removeQ(idx: number) {
     if (questions.length === 1) return;
@@ -380,12 +390,19 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups,
         <div className="space-y-4">
           {questions.map((q, qi) => {
             const qErr = errors.questions[qi] ?? {};
+            const diff = getDifficulty(q.attempts_count ?? 0, q.error_rate ?? 0);
             return (
               <div key={qi} className="rounded-2xl border bg-card p-5 shadow-card sm:p-6">
                 <div className="mb-3 flex items-start justify-between gap-3">
-                  <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                    {t.editor.questionN(qi + 1)}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                      {t.editor.questionN(qi + 1)}
+                    </span>
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${difficultyToneClass(diff)}`}>
+                      {difficultyLabel(diff)}
+                    </span>
+                    <HelpHint text={t.editor.help.difficulty} />
+                  </div>
                   <Button
                     size="icon"
                     variant="ghost"
@@ -441,6 +458,23 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups,
                   })}
                 </div>
                 {qErr.options?.some(Boolean) && <FieldError>{t.validate.fieldRequired}</FieldError>}
+
+                {/* Explanation */}
+                <div className="mt-4">
+                  <div className="mb-1.5 flex items-center gap-1.5">
+                    <Label htmlFor={`q-${qi}-exp`} className="text-xs font-medium">
+                      {t.editor.explanationLabel}
+                    </Label>
+                    <HelpHint text={t.editor.help.explanation} />
+                  </div>
+                  <Textarea
+                    id={`q-${qi}-exp`}
+                    value={q.explanation ?? ""}
+                    onChange={(e) => updateQ(qi, { explanation: e.target.value })}
+                    placeholder={t.editor.explanationPh}
+                    className="min-h-[60px] text-sm"
+                  />
+                </div>
               </div>
             );
           })}
