@@ -152,14 +152,11 @@ function GroupDetailPage() {
           .eq("user_id", user.id)
           .maybeSingle();
         memberOfGroup = !!mm;
-        setIsMember(memberOfGroup);
         if (!memberOfGroup) {
           toast.error(t.groups.notMember);
           navigate({ to: "/dashboard" });
           return;
         }
-      } else {
-        setIsMember(false);
       }
 
       // Linked tests via test_groups (junction). Fall back to legacy tests.group_id.
