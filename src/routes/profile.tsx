@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { safeQuery } from "@/lib/safe-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { CheckCircle2, XCircle, ArrowLeft, Trophy, Clock, Calendar, Sparkles } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowLeft, Trophy, Clock, Calendar, Sparkles, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
 
@@ -84,19 +84,34 @@ function ProfilePage() {
       {/* Header card */}
       <div className="relative mb-8 overflow-hidden rounded-3xl border bg-gradient-mesh p-6 shadow-card sm:p-8">
         <div className="flex items-start gap-5">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-hero text-2xl font-bold text-primary-foreground shadow-glow">
-            {(profile?.full_name?.[0] ?? profile?.username?.[0] ?? "?").toUpperCase()}
-          </div>
+          {profile?.avatar_url ? (
+            <img
+              src={profile.avatar_url}
+              alt={profile?.full_name ?? "avatar"}
+              className="h-16 w-16 shrink-0 rounded-2xl object-cover shadow-glow ring-2 ring-primary/30"
+            />
+          ) : (
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-hero text-2xl font-bold text-primary-foreground shadow-glow">
+              {(profile?.full_name?.[0] ?? profile?.username?.[0] ?? "?").toUpperCase()}
+            </div>
+          )}
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t.profile.title}</p>
             <h1 className="mt-1 truncate font-display text-2xl font-bold sm:text-3xl">{profile?.full_name ?? "—"}</h1>
             <p className="mt-1 text-sm text-muted-foreground">@{profile?.username} · {profile?.phone}</p>
+            {profile?.bio && <p className="mt-2 max-w-2xl text-sm text-foreground/80">{profile.bio}</p>}
           </div>
+          <Link to="/profile/edit">
+            <Button variant="outline" className="rounded-full">
+              <Pencil className="mr-2 h-3.5 w-3.5" />
+              {t.profile.edit}
+            </Button>
+          </Link>
         </div>
         <div className="mt-6 grid grid-cols-3 gap-3">
           <Stat icon={Trophy} label={t.profile.myAttempts} value={stats.total} accent="primary" />
           <Stat icon={Sparkles} label={t.results.statAvg} value={`${stats.avg}%`} accent="accent" />
-          <Stat icon={Trophy} label="Eng yaxshi" value={`${stats.best}%`} accent="success" />
+          <Stat icon={Trophy} label={t.profile.bestScore} value={`${stats.best}%`} accent="success" />
         </div>
       </div>
 

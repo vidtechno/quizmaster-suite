@@ -4,6 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Trophy, Clock, Shuffle, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
+import { PaginationBar } from "@/components/PaginationBar";
+
+const PAGE_SIZE = 20;
 
 export const Route = createFileRoute("/explore")({
   head: () => ({ meta: [{ title: t.explore.metaTitle }] }),
@@ -24,6 +27,7 @@ type PublicTest = {
 function ExplorePage() {
   const [tests, setTests] = useState<PublicTest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     (async () => {
@@ -33,7 +37,7 @@ function ExplorePage() {
           .select("id, title, description, time_limit, random_enabled, created_at, creator_id, questions(count)")
           .eq("is_public", true)
           .order("created_at", { ascending: false })
-          .limit(50);
+          .limit(500);
         if (error) {
           toast.error(t.err.loadFailed);
           setLoading(false);
@@ -88,42 +92,45 @@ function ExplorePage() {
           <p className="text-muted-foreground">{t.explore.empty}</p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {tests.map((tt) => (
-            <Link
-              key={tt.id}
-              to="/quiz/$id"
-              params={{ id: tt.id }}
-              className="group flex flex-col rounded-2xl border bg-card p-5 shadow-card transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-elegant sm:p-6"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <h3 className="font-display text-lg font-semibold leading-snug">{tt.title}</h3>
-                {tt.random_enabled && <Shuffle className="h-4 w-4 shrink-0 text-accent" />}
-              </div>
-              {tt.description && <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{tt.description}</p>}
-              <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Trophy className="h-3.5 w-3.5" />
-                  {t.explore.qShort(tt.question_count)}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  {t.explore.minShort(Math.round(tt.time_limit / 60))}
-                </span>
-                {tt.creator && (
-                  <span>
-                    {t.explore.by} @{tt.creator.username}
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {tests.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((tt) => (
+              <Link
+                key={tt.id}
+                to="/quiz/$id"
+                params={{ id: tt.id }}
+                className="group flex flex-col rounded-2xl border bg-card p-5 shadow-card transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-elegant sm:p-6"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="font-display text-lg font-semibold leading-snug">{tt.title}</h3>
+                  {tt.random_enabled && <Shuffle className="h-4 w-4 shrink-0 text-accent" />}
+                </div>
+                {tt.description && <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{tt.description}</p>}
+                <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Trophy className="h-3.5 w-3.5" />
+                    {t.explore.qShort(tt.question_count)}
                   </span>
-                )}
-              </div>
-              <div className="mt-auto pt-4">
-                <span className="inline-flex items-center gap-1 text-sm font-medium text-primary group-hover:underline">
-                  {t.explore.take} <ArrowRight className="h-3.5 w-3.5" />
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5" />
+                    {t.explore.minShort(Math.round(tt.time_limit / 60))}
+                  </span>
+                  {tt.creator && (
+                    <span>
+                      {t.explore.by} @{tt.creator.username}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-auto pt-4">
+                  <span className="inline-flex items-center gap-1 text-sm font-medium text-primary group-hover:underline">
+                    {t.explore.take} <ArrowRight className="h-3.5 w-3.5" />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <PaginationBar page={page} pageSize={PAGE_SIZE} total={tests.length} onChange={setPage} />
+        </>
       )}
     </div>
   );

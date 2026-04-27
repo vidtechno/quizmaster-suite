@@ -24,6 +24,7 @@ type Test = {
   access_code: string | null;
   max_attempts: number;
   creator_id: string;
+  questions_per_attempt: number | null;
 };
 type Question = {
   id: string;
@@ -31,6 +32,7 @@ type Question = {
   options: string[];
   correct_answer_index: number;
   position: number;
+  explanation: string | null;
 };
 
 type Mode = "intro" | "code-gate" | "running" | "submitted";
@@ -87,6 +89,7 @@ function QuizPage() {
             options: Array.isArray(q.options) ? q.options : [],
             correct_answer_index: q.correct_answer_index,
             position: q.position,
+            explanation: q.explanation ?? null,
           })),
         );
 
@@ -179,7 +182,12 @@ function QuizPage() {
 
   function beginRunning() {
     if (!test || questions.length === 0) return toast.error(t.player.noQuestions);
-    const baseQs = test.random_enabled ? shuffle(questions) : questions;
+    // Always shuffle when picking a subset; otherwise honor random_enabled flag
+    const subsetSize = test.questions_per_attempt && test.questions_per_attempt > 0
+      ? Math.min(test.questions_per_attempt, questions.length)
+      : questions.length;
+    const needShuffle = test.random_enabled || subsetSize < questions.length;
+    const baseQs = (needShuffle ? shuffle(questions) : questions).slice(0, subsetSize);
     const prepared = baseQs.map((q) => {
       const indices = q.options.map((_, i) => i);
       const order = test.random_enabled ? shuffle(indices) : indices;
@@ -276,11 +284,24 @@ function QuizPage() {
                 <Shuffle className="h-3 w-3" /> {t.player.randomTag}
               </span>
             )}
+            {test.questions_per_attempt && test.questions_per_attempt > 0 && test.questions_per_attempt < questions.length && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 font-medium text-primary">
+                {t.player.subsetTag(test.questions_per_attempt, questions.length)}
+              </span>
+            )}
           </div>
           <h1 className="font-display text-3xl font-semibold sm:text-4xl">{test.title}</h1>
           {test.description && <p className="mt-3 text-muted-foreground">{test.description}</p>}
           <div className="mt-6 grid grid-cols-3 gap-3 text-sm">
-            <Stat icon={Trophy} label={t.player.questionsStat} value={questions.length.toString()} />
+            <Stat
+              icon={Trophy}
+              label={t.player.questionsStat}
+              value={
+                test.questions_per_attempt && test.questions_per_attempt > 0 && test.questions_per_attempt < questions.length
+                  ? `${test.questions_per_attempt} / ${questions.length}`
+                  : questions.length.toString()
+              }
+            />
             <Stat icon={Clock} label={t.player.timeLimitStat} value={t.player.badgeMin(Math.round(test.time_limit / 60))} />
             <Stat
               icon={Medal}
@@ -469,6 +490,12 @@ function QuizPage() {
                       <p className="mt-0.5 text-sm text-success">
                         {t.player.correctIs}: {q.options[q.correct_answer_index]}
                       </p>
+                    )}
+                    {q.explanation && (
+                      <div className="mt-2 rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-primary">{t.player.explanation}</p>
+                        <p className="mt-1 text-foreground/80">{q.explanation}</p>
+                      </div>
                     )}
                   </div>
                 </div>
