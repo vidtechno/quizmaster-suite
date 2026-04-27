@@ -436,6 +436,39 @@ function DashboardPage() {
           )}
         </TabsContent>
       </Tabs>
+
+      <Dialog open={joinOpen} onOpenChange={setJoinOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5 text-primary" />
+              {t.groups.joinByCode}
+            </DialogTitle>
+            <DialogDescription>{t.groups.joinByCodeDesc}</DialogDescription>
+          </DialogHeader>
+          <div>
+            <Label htmlFor="join-code">{t.groups.code}</Label>
+            <Input
+              id="join-code"
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+              placeholder={t.groups.joinCodePh}
+              autoFocus
+              maxLength={12}
+              className="font-mono tracking-widest text-base"
+              onKeyDown={(e) => e.key === "Enter" && handleJoinByCode()}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setJoinOpen(false)} className="rounded-full">
+              {t.cancel}
+            </Button>
+            <Button onClick={handleJoinByCode} disabled={joining} className="rounded-full">
+              {joining ? t.groups.joining : t.groups.joinSubmit}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
