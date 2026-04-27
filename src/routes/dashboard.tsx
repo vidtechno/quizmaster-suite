@@ -210,88 +210,91 @@ function DashboardPage() {
               onClick={newTestClick}
             />
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {tests.map((tt) => {
-                const groupName = groups.find((g) => g.id === tt.group_id)?.name;
-                return (
-                  <div key={tt.id} className="rounded-2xl border bg-card p-5 shadow-card transition-shadow hover:shadow-elegant sm:p-6">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-display text-lg font-semibold leading-snug sm:text-xl">{tt.title}</h3>
-                        {tt.description && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{tt.description}</p>}
-                      </div>
-                      <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-                          tt.is_public ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        {tt.is_public ? (
-                          <>
-                            <Globe className="h-3 w-3" /> {t.dashboard.public}
-                          </>
-                        ) : (
-                          <>
-                            <Lock className="h-3 w-3" /> {t.dashboard.private}
-                          </>
-                        )}
-                      </span>
-                    </div>
-                    {!tt.is_public && groupName && (
-                      <p className="mt-2 text-xs font-medium text-accent-foreground">{t.dashboard.forGroup(groupName)}</p>
-                    )}
-                    {!tt.is_public && tt.access_code && (
-                      <div className="mt-2 flex items-center gap-2 rounded-md bg-muted/50 px-2.5 py-1.5">
-                        <span className="font-mono text-sm tracking-wider">{tt.access_code}</span>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-6 w-6"
-                          onClick={() => copyCode(tt.access_code!)}
-                          aria-label={t.groups.copyCode}
+            <>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {tests.slice((testsPage - 1) * PAGE_SIZE, testsPage * PAGE_SIZE).map((tt) => {
+                  const groupName = groups.find((g) => g.id === tt.group_id)?.name;
+                  return (
+                    <div key={tt.id} className="rounded-2xl border bg-card p-5 shadow-card transition-shadow hover:shadow-elegant sm:p-6">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-display text-lg font-semibold leading-snug sm:text-xl">{tt.title}</h3>
+                          {tt.description && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{tt.description}</p>}
+                        </div>
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                            tt.is_public ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"
+                          }`}
                         >
-                          <Copy className="h-3 w-3" />
+                          {tt.is_public ? (
+                            <>
+                              <Globe className="h-3 w-3" /> {t.dashboard.public}
+                            </>
+                          ) : (
+                            <>
+                              <Lock className="h-3 w-3" /> {t.dashboard.private}
+                            </>
+                          )}
+                        </span>
+                      </div>
+                      {!tt.is_public && groupName && (
+                        <p className="mt-2 text-xs font-medium text-accent-foreground">{t.dashboard.forGroup(groupName)}</p>
+                      )}
+                      {!tt.is_public && tt.access_code && (
+                        <div className="mt-2 flex items-center gap-2 rounded-md bg-muted/50 px-2.5 py-1.5">
+                          <span className="font-mono text-sm tracking-wider">{tt.access_code}</span>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6"
+                            onClick={() => copyCode(tt.access_code!)}
+                            aria-label={t.groups.copyCode}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                      <div className="mt-4 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                        <span>{t.dashboard.questions(tt.question_count)}</span>
+                        <span>·</span>
+                        <span>{t.dashboard.minutes(Math.round(tt.time_limit / 60))}</span>
+                        <span>·</span>
+                        <span className="flex items-center gap-1">
+                          <Users className="h-3 w-3" />
+                          {t.dashboard.attempts(tt.attempt_count)}
+                        </span>
+                        <span>·</span>
+                        <span>{t.dashboard.maxPerUser(tt.max_attempts)}</span>
+                      </div>
+                      <div className="mt-5 flex flex-wrap gap-2">
+                        <Link to="/quiz/$id/edit" params={{ id: tt.id }}>
+                          <Button size="sm" variant="outline">
+                            <Pencil className="mr-2 h-3.5 w-3.5" />
+                            {t.edit}
+                          </Button>
+                        </Link>
+                        <Link to="/quiz/$id/results" params={{ id: tt.id }}>
+                          <Button size="sm" variant="outline">
+                            <BarChart3 className="mr-2 h-3.5 w-3.5" />
+                            {t.dashboard.results}
+                          </Button>
+                        </Link>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => deleteTest(tt.id)}
+                        >
+                          <Trash2 className="mr-2 h-3.5 w-3.5" />
+                          {t.delete}
                         </Button>
                       </div>
-                    )}
-                    <div className="mt-4 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                      <span>{t.dashboard.questions(tt.question_count)}</span>
-                      <span>·</span>
-                      <span>{t.dashboard.minutes(Math.round(tt.time_limit / 60))}</span>
-                      <span>·</span>
-                      <span className="flex items-center gap-1">
-                        <Users className="h-3 w-3" />
-                        {t.dashboard.attempts(tt.attempt_count)}
-                      </span>
-                      <span>·</span>
-                      <span>{t.dashboard.maxPerUser(tt.max_attempts)}</span>
                     </div>
-                    <div className="mt-5 flex flex-wrap gap-2">
-                      <Link to="/quiz/$id/edit" params={{ id: tt.id }}>
-                        <Button size="sm" variant="outline">
-                          <Pencil className="mr-2 h-3.5 w-3.5" />
-                          {t.edit}
-                        </Button>
-                      </Link>
-                      <Link to="/quiz/$id/results" params={{ id: tt.id }}>
-                        <Button size="sm" variant="outline">
-                          <BarChart3 className="mr-2 h-3.5 w-3.5" />
-                          {t.dashboard.results}
-                        </Button>
-                      </Link>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                        onClick={() => deleteTest(tt.id)}
-                      >
-                        <Trash2 className="mr-2 h-3.5 w-3.5" />
-                        {t.delete}
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+              <PaginationBar page={testsPage} pageSize={PAGE_SIZE} total={tests.length} onChange={setTestsPage} />
+            </>
           )}
         </TabsContent>
 
