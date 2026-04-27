@@ -8,6 +8,9 @@ import { Plus, Pencil, Trash2, Users, Globe, Lock, BarChart3, FileText, Copy } f
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
 import { safeQuery, safeMutation } from "@/lib/safe-query";
+import { PaginationBar } from "@/components/PaginationBar";
+
+const PAGE_SIZE = 20;
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [{ title: t.dashboard.metaTitle }] }),
