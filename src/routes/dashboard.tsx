@@ -3,8 +3,18 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, Users, Globe, Lock, BarChart3, FileText, Copy } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, Globe, Lock, BarChart3, FileText, Copy, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
 import { safeQuery, safeMutation } from "@/lib/safe-query";
@@ -49,6 +59,53 @@ function DashboardPage() {
   const [tab, setTab] = useState<"tests" | "groups">("tests");
   const [testsPage, setTestsPage] = useState(1);
   const [groupsPage, setGroupsPage] = useState(1);
+  const [joinOpen, setJoinOpen] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
+  const [joining, setJoining] = useState(false);
+
+  async function handleJoinByCode() {
+    const code = joinCode.trim().toUpperCase();
+    if (code.length < 4) {
+      toast.error(t.groups.joinNotFound);
+      return;
+    }
+    setJoining(true);
+    try {
+      const { data, error } = await supabase.rpc("join_group_by_code", { _code: code });
+      if (error) {
+        toast.error(t.err.generic);
+        return;
+      }
+      const res = data as any;
+      if (!res?.ok) {
+        const map: Record<string, string> = {
+          not_found: t.groups.joinNotFound,
+          group_full: t.groups.joinFull,
+          unauthorized: t.err.generic,
+        };
+        toast.error(map[res?.error] ?? t.err.generic);
+        return;
+      }
+      if (res.already) {
+        toast.success(t.groups.joinAlready);
+      } else {
+        toast.success(t.groups.joinSuccess);
+      }
+      setJoinOpen(false);
+      setJoinCode("");
+      if (res.group_id) {
+        navigate({ to: "/groups/$id", params: { id: res.group_id } });
+      } else if (res.test_id) {
+        navigate({ to: "/quiz/$id", params: { id: res.test_id } });
+      } else {
+        toast.message(t.groups.joinNoGroup);
+      }
+    } catch {
+      toast.error(t.err.network);
+    } finally {
+      setJoining(false);
+    }
+  }
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/login" });
@@ -174,19 +231,25 @@ function DashboardPage() {
           <h2 className="font-display text-2xl font-semibold sm:text-3xl">{t.dashboard.title}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{t.dashboard.subtitle}</p>
         </div>
-        {tab === "tests" ? (
-          <Button onClick={newTestClick}>
-            <Plus className="mr-2 h-4 w-4" />
-            {t.dashboard.newQuiz}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" onClick={() => setJoinOpen(true)} className="rounded-full">
+            <KeyRound className="mr-2 h-4 w-4" />
+            {t.groups.joinByCode}
           </Button>
-        ) : (
-          <Link to="/groups">
-            <Button>
+          {tab === "tests" ? (
+            <Button onClick={newTestClick}>
               <Plus className="mr-2 h-4 w-4" />
-              {t.groups.newGroup}
+              {t.dashboard.newQuiz}
             </Button>
-          </Link>
-        )}
+          ) : (
+            <Link to="/groups">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                {t.groups.newGroup}
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as "tests" | "groups")}>
@@ -373,6 +436,39 @@ function DashboardPage() {
           )}
         </TabsContent>
       </Tabs>
+
+      <Dialog open={joinOpen} onOpenChange={setJoinOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5 text-primary" />
+              {t.groups.joinByCode}
+            </DialogTitle>
+            <DialogDescription>{t.groups.joinByCodeDesc}</DialogDescription>
+          </DialogHeader>
+          <div>
+            <Label htmlFor="join-code">{t.groups.code}</Label>
+            <Input
+              id="join-code"
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+              placeholder={t.groups.joinCodePh}
+              autoFocus
+              maxLength={12}
+              className="font-mono tracking-widest text-base"
+              onKeyDown={(e) => e.key === "Enter" && handleJoinByCode()}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setJoinOpen(false)} className="rounded-full">
+              {t.cancel}
+            </Button>
+            <Button onClick={handleJoinByCode} disabled={joining} className="rounded-full">
+              {joining ? t.groups.joining : t.groups.joinSubmit}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
