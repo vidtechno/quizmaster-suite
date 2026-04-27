@@ -24,6 +24,7 @@ type Test = {
   access_code: string | null;
   max_attempts: number;
   creator_id: string;
+  questions_per_attempt: number | null;
 };
 type Question = {
   id: string;
@@ -31,6 +32,7 @@ type Question = {
   options: string[];
   correct_answer_index: number;
   position: number;
+  explanation: string | null;
 };
 
 type Mode = "intro" | "code-gate" | "running" | "submitted";
@@ -87,6 +89,7 @@ function QuizPage() {
             options: Array.isArray(q.options) ? q.options : [],
             correct_answer_index: q.correct_answer_index,
             position: q.position,
+            explanation: q.explanation ?? null,
           })),
         );
 
@@ -179,7 +182,12 @@ function QuizPage() {
 
   function beginRunning() {
     if (!test || questions.length === 0) return toast.error(t.player.noQuestions);
-    const baseQs = test.random_enabled ? shuffle(questions) : questions;
+    // Always shuffle when picking a subset; otherwise honor random_enabled flag
+    const subsetSize = test.questions_per_attempt && test.questions_per_attempt > 0
+      ? Math.min(test.questions_per_attempt, questions.length)
+      : questions.length;
+    const needShuffle = test.random_enabled || subsetSize < questions.length;
+    const baseQs = (needShuffle ? shuffle(questions) : questions).slice(0, subsetSize);
     const prepared = baseQs.map((q) => {
       const indices = q.options.map((_, i) => i);
       const order = test.random_enabled ? shuffle(indices) : indices;
