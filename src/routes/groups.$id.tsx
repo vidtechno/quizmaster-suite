@@ -93,7 +93,7 @@ function GroupDetailPage() {
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreator, setIsCreator] = useState(false);
-  const [isMember, setIsMember] = useState(false);
+  
 
   const [addOpen, setAddOpen] = useState(false);
   const [addUsername, setAddUsername] = useState("");
