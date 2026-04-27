@@ -3,8 +3,18 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, Users, Globe, Lock, BarChart3, FileText, Copy } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, Globe, Lock, BarChart3, FileText, Copy, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
 import { safeQuery, safeMutation } from "@/lib/safe-query";
