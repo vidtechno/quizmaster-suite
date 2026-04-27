@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Trophy, Clock, Shuffle, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
+import { PaginationBar } from "@/components/PaginationBar";
+
+const PAGE_SIZE = 20;
 
 export const Route = createFileRoute("/explore")({
   head: () => ({ meta: [{ title: t.explore.metaTitle }] }),
