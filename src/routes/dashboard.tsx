@@ -231,19 +231,25 @@ function DashboardPage() {
           <h2 className="font-display text-2xl font-semibold sm:text-3xl">{t.dashboard.title}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{t.dashboard.subtitle}</p>
         </div>
-        {tab === "tests" ? (
-          <Button onClick={newTestClick}>
-            <Plus className="mr-2 h-4 w-4" />
-            {t.dashboard.newQuiz}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" onClick={() => setJoinOpen(true)} className="rounded-full">
+            <KeyRound className="mr-2 h-4 w-4" />
+            {t.groups.joinByCode}
           </Button>
-        ) : (
-          <Link to="/groups">
-            <Button>
+          {tab === "tests" ? (
+            <Button onClick={newTestClick}>
               <Plus className="mr-2 h-4 w-4" />
-              {t.groups.newGroup}
+              {t.dashboard.newQuiz}
             </Button>
-          </Link>
-        )}
+          ) : (
+            <Link to="/groups">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                {t.groups.newGroup}
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as "tests" | "groups")}>
