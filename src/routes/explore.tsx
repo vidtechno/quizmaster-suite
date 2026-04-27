@@ -27,6 +27,7 @@ type PublicTest = {
 function ExplorePage() {
   const [tests, setTests] = useState<PublicTest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     (async () => {
@@ -36,7 +37,7 @@ function ExplorePage() {
           .select("id, title, description, time_limit, random_enabled, created_at, creator_id, questions(count)")
           .eq("is_public", true)
           .order("created_at", { ascending: false })
-          .limit(50);
+          .limit(500);
         if (error) {
           toast.error(t.err.loadFailed);
           setLoading(false);
