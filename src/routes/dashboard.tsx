@@ -59,6 +59,53 @@ function DashboardPage() {
   const [tab, setTab] = useState<"tests" | "groups">("tests");
   const [testsPage, setTestsPage] = useState(1);
   const [groupsPage, setGroupsPage] = useState(1);
+  const [joinOpen, setJoinOpen] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
+  const [joining, setJoining] = useState(false);
+
+  async function handleJoinByCode() {
+    const code = joinCode.trim().toUpperCase();
+    if (code.length < 4) {
+      toast.error(t.groups.joinNotFound);
+      return;
+    }
+    setJoining(true);
+    try {
+      const { data, error } = await supabase.rpc("join_group_by_code", { _code: code });
+      if (error) {
+        toast.error(t.err.generic);
+        return;
+      }
+      const res = data as any;
+      if (!res?.ok) {
+        const map: Record<string, string> = {
+          not_found: t.groups.joinNotFound,
+          group_full: t.groups.joinFull,
+          unauthorized: t.err.generic,
+        };
+        toast.error(map[res?.error] ?? t.err.generic);
+        return;
+      }
+      if (res.already) {
+        toast.success(t.groups.joinAlready);
+      } else {
+        toast.success(t.groups.joinSuccess);
+      }
+      setJoinOpen(false);
+      setJoinCode("");
+      if (res.group_id) {
+        navigate({ to: "/groups/$id", params: { id: res.group_id } });
+      } else if (res.test_id) {
+        navigate({ to: "/quiz/$id", params: { id: res.test_id } });
+      } else {
+        toast.message(t.groups.joinNoGroup);
+      }
+    } catch {
+      toast.error(t.err.network);
+    } finally {
+      setJoining(false);
+    }
+  }
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/login" });
