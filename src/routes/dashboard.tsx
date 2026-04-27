@@ -47,6 +47,8 @@ function DashboardPage() {
   const [groups, setGroups] = useState<MyGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"tests" | "groups">("tests");
+  const [testsPage, setTestsPage] = useState(1);
+  const [groupsPage, setGroupsPage] = useState(1);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/login" });
@@ -310,50 +312,64 @@ function DashboardPage() {
               icon={<Users className="mx-auto h-10 w-10 text-muted-foreground" />}
             />
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {groups.map((g) => (
-                <div key={g.id} className="rounded-2xl border bg-card p-5 shadow-card transition-shadow hover:shadow-elegant sm:p-6">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-display text-lg font-semibold leading-snug sm:text-xl">{g.name}</h3>
-                      {g.description && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{g.description}</p>}
+            <>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {groups.slice((groupsPage - 1) * PAGE_SIZE, groupsPage * PAGE_SIZE).map((g) => (
+                  <Link
+                    key={g.id}
+                    to="/groups/$id"
+                    params={{ id: g.id }}
+                    className="block rounded-2xl border bg-card p-5 shadow-card transition-shadow hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-elegant sm:p-6"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-display text-lg font-semibold leading-snug sm:text-xl">{g.name}</h3>
+                        {g.description && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{g.description}</p>}
+                      </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          deleteGroup(g.id);
+                        }}
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        aria-label={t.delete}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => deleteGroup(g.id)}
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                      aria-label={t.delete}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <p className="mt-3 text-xs text-muted-foreground">{t.groups.cardTests(g.testCount)}</p>
-                  {g.activeTest ? (
-                    <div className="mt-3 rounded-xl border bg-muted/30 p-3">
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t.groups.activeTest}</p>
-                      <p className="mt-1 truncate text-sm font-medium">{g.activeTest.title}</p>
-                      {g.activeTest.access_code && (
-                        <div className="mt-2 flex items-center justify-between gap-2 rounded-md bg-background px-2.5 py-1.5">
-                          <span className="font-mono text-sm tracking-wider">{g.activeTest.access_code}</span>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-6 w-6"
-                            onClick={() => copyCode(g.activeTest!.access_code!)}
-                            aria-label={t.groups.copyCode}
-                          >
-                            <Copy className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="mt-3 text-xs text-muted-foreground">{t.groups.noActiveTest}</p>
-                  )}
-                </div>
-              ))}
-            </div>
+                    <p className="mt-3 text-xs text-muted-foreground">{t.groups.cardTests(g.testCount)}</p>
+                    {g.activeTest ? (
+                      <div className="mt-3 rounded-xl border bg-muted/30 p-3">
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t.groups.activeTest}</p>
+                        <p className="mt-1 truncate text-sm font-medium">{g.activeTest.title}</p>
+                        {g.activeTest.access_code && (
+                          <div className="mt-2 flex items-center justify-between gap-2 rounded-md bg-background px-2.5 py-1.5">
+                            <span className="font-mono text-sm tracking-wider">{g.activeTest.access_code}</span>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                copyCode(g.activeTest!.access_code!);
+                              }}
+                              aria-label={t.groups.copyCode}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="mt-3 text-xs text-muted-foreground">{t.groups.noActiveTest}</p>
+                    )}
+                  </Link>
+                ))}
+              </div>
+              <PaginationBar page={groupsPage} pageSize={PAGE_SIZE} total={groups.length} onChange={setGroupsPage} />
+            </>
           )}
         </TabsContent>
       </Tabs>
