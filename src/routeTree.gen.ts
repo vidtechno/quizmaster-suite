@@ -13,14 +13,12 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as GroupsRouteImport } from './routes/groups'
-import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as QuizNewRouteImport } from './routes/quiz.new'
 import { Route as QuizIdRouteImport } from './routes/quiz.$id'
 import { Route as ProfileEditRouteImport } from './routes/profile.edit'
 import { Route as GroupsIdRouteImport } from './routes/groups.$id'
-import { Route as QuizIdResultsRouteImport } from './routes/quiz.$id.results'
 import { Route as QuizIdEditRouteImport } from './routes/quiz.$id.edit'
 
 const SignupRoute = SignupRouteImport.update({
@@ -41,11 +39,6 @@ const LoginRoute = LoginRouteImport.update({
 const GroupsRoute = GroupsRouteImport.update({
   id: '/groups',
   path: '/groups',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ExploreRoute = ExploreRouteImport.update({
-  id: '/explore',
-  path: '/explore',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -78,11 +71,6 @@ const GroupsIdRoute = GroupsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => GroupsRoute,
 } as any)
-const QuizIdResultsRoute = QuizIdResultsRouteImport.update({
-  id: '/results',
-  path: '/results',
-  getParentRoute: () => QuizIdRoute,
-} as any)
 const QuizIdEditRoute = QuizIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
@@ -92,7 +80,6 @@ const QuizIdEditRoute = QuizIdEditRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
-  '/explore': typeof ExploreRoute
   '/groups': typeof GroupsRouteWithChildren
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRouteWithChildren
@@ -102,12 +89,10 @@ export interface FileRoutesByFullPath {
   '/quiz/$id': typeof QuizIdRouteWithChildren
   '/quiz/new': typeof QuizNewRoute
   '/quiz/$id/edit': typeof QuizIdEditRoute
-  '/quiz/$id/results': typeof QuizIdResultsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
-  '/explore': typeof ExploreRoute
   '/groups': typeof GroupsRouteWithChildren
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRouteWithChildren
@@ -117,13 +102,11 @@ export interface FileRoutesByTo {
   '/quiz/$id': typeof QuizIdRouteWithChildren
   '/quiz/new': typeof QuizNewRoute
   '/quiz/$id/edit': typeof QuizIdEditRoute
-  '/quiz/$id/results': typeof QuizIdResultsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
-  '/explore': typeof ExploreRoute
   '/groups': typeof GroupsRouteWithChildren
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRouteWithChildren
@@ -133,14 +116,12 @@ export interface FileRoutesById {
   '/quiz/$id': typeof QuizIdRouteWithChildren
   '/quiz/new': typeof QuizNewRoute
   '/quiz/$id/edit': typeof QuizIdEditRoute
-  '/quiz/$id/results': typeof QuizIdResultsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/dashboard'
-    | '/explore'
     | '/groups'
     | '/login'
     | '/profile'
@@ -150,12 +131,10 @@ export interface FileRouteTypes {
     | '/quiz/$id'
     | '/quiz/new'
     | '/quiz/$id/edit'
-    | '/quiz/$id/results'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/dashboard'
-    | '/explore'
     | '/groups'
     | '/login'
     | '/profile'
@@ -165,12 +144,10 @@ export interface FileRouteTypes {
     | '/quiz/$id'
     | '/quiz/new'
     | '/quiz/$id/edit'
-    | '/quiz/$id/results'
   id:
     | '__root__'
     | '/'
     | '/dashboard'
-    | '/explore'
     | '/groups'
     | '/login'
     | '/profile'
@@ -180,13 +157,11 @@ export interface FileRouteTypes {
     | '/quiz/$id'
     | '/quiz/new'
     | '/quiz/$id/edit'
-    | '/quiz/$id/results'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
-  ExploreRoute: typeof ExploreRoute
   GroupsRoute: typeof GroupsRouteWithChildren
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRouteWithChildren
@@ -223,13 +198,6 @@ declare module '@tanstack/react-router' {
       path: '/groups'
       fullPath: '/groups'
       preLoaderRoute: typeof GroupsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/explore': {
-      id: '/explore'
-      path: '/explore'
-      fullPath: '/explore'
-      preLoaderRoute: typeof ExploreRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -274,13 +242,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GroupsIdRouteImport
       parentRoute: typeof GroupsRoute
     }
-    '/quiz/$id/results': {
-      id: '/quiz/$id/results'
-      path: '/results'
-      fullPath: '/quiz/$id/results'
-      preLoaderRoute: typeof QuizIdResultsRouteImport
-      parentRoute: typeof QuizIdRoute
-    }
     '/quiz/$id/edit': {
       id: '/quiz/$id/edit'
       path: '/edit'
@@ -315,12 +276,10 @@ const ProfileRouteWithChildren =
 
 interface QuizIdRouteChildren {
   QuizIdEditRoute: typeof QuizIdEditRoute
-  QuizIdResultsRoute: typeof QuizIdResultsRoute
 }
 
 const QuizIdRouteChildren: QuizIdRouteChildren = {
   QuizIdEditRoute: QuizIdEditRoute,
-  QuizIdResultsRoute: QuizIdResultsRoute,
 }
 
 const QuizIdRouteWithChildren =
@@ -329,7 +288,6 @@ const QuizIdRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
-  ExploreRoute: ExploreRoute,
   GroupsRoute: GroupsRouteWithChildren,
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRouteWithChildren,
