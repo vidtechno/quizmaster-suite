@@ -51,6 +51,7 @@ export type Database = {
       }
       groups: {
         Row: {
+          access_code: string
           created_at: string
           creator_id: string
           description: string | null
@@ -60,6 +61,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          access_code: string
           created_at?: string
           creator_id: string
           description?: string | null
@@ -69,6 +71,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          access_code?: string
           created_at?: string
           creator_id?: string
           description?: string | null
@@ -288,70 +291,80 @@ export type Database = {
       }
       tests: {
         Row: {
-          access_code: string | null
           created_at: string
           creator_id: string
           description: string | null
-          group_id: string | null
           id: string
-          is_public: boolean
           max_attempts: number
           questions_per_attempt: number | null
           random_enabled: boolean
+          test_code: string
           time_limit: number
           title: string
           updated_at: string
         }
         Insert: {
-          access_code?: string | null
           created_at?: string
           creator_id: string
           description?: string | null
-          group_id?: string | null
           id?: string
-          is_public?: boolean
           max_attempts?: number
           questions_per_attempt?: number | null
           random_enabled?: boolean
+          test_code: string
           time_limit?: number
           title: string
           updated_at?: string
         }
         Update: {
-          access_code?: string | null
           created_at?: string
           creator_id?: string
           description?: string | null
-          group_id?: string | null
           id?: string
-          is_public?: boolean
           max_attempts?: number
           questions_per_attempt?: number | null
           random_enabled?: boolean
+          test_code?: string
           time_limit?: number
           title?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "tests_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      attach_test_to_group: {
+        Args: { _group_id: string; _test_code: string }
+        Returns: Json
+      }
       can_user_attempt_test: {
         Args: { _test_id: string; _user_id: string }
         Returns: Json
       }
-      generate_access_code: { Args: never; Returns: string }
+      detach_test_from_group: {
+        Args: { _group_id: string; _test_id: string }
+        Returns: Json
+      }
+      gen_code6: { Args: never; Returns: string }
+      gen_unique_group_code: { Args: never; Returns: string }
+      gen_unique_test_code: { Args: never; Returns: string }
+      get_group_leaderboard: {
+        Args: { _group_id: string; _limit?: number; _test_id: string }
+        Returns: {
+          avatar_url: string
+          full_name: string
+          pct: number
+          score: number
+          submitted_at: string
+          time_spent: number
+          total_questions: number
+          user_id: string
+          username: string
+        }[]
+      }
       get_group_member_stats: {
         Args: { _group_id: string }
         Returns: {

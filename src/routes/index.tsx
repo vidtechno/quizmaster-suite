@@ -53,15 +53,16 @@ function Landing() {
                   {t.landing.ctaPrimary} <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
-              <Link to="/explore">
+              {!user && (
                 <Button
                   size="lg"
                   variant="outline"
+                  onClick={openAuthModal}
                   className="border-white/20 bg-white/5 text-primary-foreground hover:bg-white/10 hover:text-primary-foreground"
                 >
                   {t.landing.ctaSecondary}
                 </Button>
-              </Link>
+              )}
             </div>
           </div>
         </div>

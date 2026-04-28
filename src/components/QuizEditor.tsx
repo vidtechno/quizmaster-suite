@@ -4,11 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Check, AlertCircle, Info, Users, X } from "lucide-react";
+import { Plus, Trash2, Check, AlertCircle, Info } from "lucide-react";
 import { HelpHint } from "@/components/HelpHint";
 import { t } from "@/lib/i18n";
 import { toast } from "sonner";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { getDifficulty, difficultyLabel, difficultyToneClass } from "@/lib/difficulty";
 
 export type QuestionDraft = {
@@ -17,7 +16,6 @@ export type QuestionDraft = {
   options: string[];
   correct_answer_index: number;
   explanation?: string | null;
-  /** Cached stats — used to render difficulty badge in editor only. */
   attempts_count?: number;
   error_rate?: number;
 };
@@ -27,34 +25,27 @@ export type TestDraft = {
   description: string;
   time_limit_min: number;
   random_enabled: boolean;
-  is_public: boolean;
-  access_code: string;
   max_attempts: number;
-  /** Multi-group attachments (replaces single group_id) */
-  group_ids: string[];
-  /** When set, only this many random questions are shown per attempt */
   questions_per_attempt: number | null;
 };
-
-export type GroupOption = { id: string; name: string };
 
 type Props = {
   initialTest: TestDraft;
   initialQuestions: QuestionDraft[];
   submitLabel: string;
-  groups: GroupOption[];
+  /** Set when editing an existing test — shown as a copyable badge. */
+  testCode?: string | null;
   onSubmit: (test: TestDraft, questions: QuestionDraft[]) => Promise<void>;
 };
 
 type FieldErrors = {
   title?: boolean;
-  group?: boolean;
   questions: Array<{ text?: boolean; options?: boolean[] }>;
 };
 
 const errBorder = "border-destructive ring-1 ring-destructive/40 focus-visible:ring-destructive";
 
-export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups, onSubmit }: Props) {
+export function QuizEditor({ initialTest, initialQuestions, submitLabel, testCode, onSubmit }: Props) {
   const [test, setTest] = useState<TestDraft>(initialTest);
   const [questions, setQuestions] = useState<QuestionDraft[]>(
     initialQuestions.length
@@ -100,27 +91,14 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups,
     setErrors((e) => ({ ...e, questions: e.questions.filter((_, i) => i !== idx) }));
   }
 
-  function toggleGroup(id: string) {
-    setTest((tt) => {
-      const next = tt.group_ids.includes(id) ? tt.group_ids.filter((x) => x !== id) : [...tt.group_ids, id];
-      return { ...tt, group_ids: next };
-    });
-    setErrors((er) => ({ ...er, group: false }));
-  }
-
   function validate(): boolean {
     const newErrs: FieldErrors = { questions: questions.map(() => ({})) };
     let firstInvalidId: string | null = null;
 
     if (!test.title.trim()) {
       newErrs.title = true;
-      if (!firstInvalidId) firstInvalidId = "title";
+      firstInvalidId = "title";
     }
-    if (!test.is_public && test.group_ids.length === 0) {
-      newErrs.group = true;
-      if (!firstInvalidId) firstInvalidId = "group-trigger";
-    }
-
     questions.forEach((q, qi) => {
       const qe: { text?: boolean; options?: boolean[] } = {};
       if (!q.question_text.trim()) {
@@ -139,15 +117,9 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups,
     });
 
     setErrors(newErrs);
-
-    const hasError =
-      newErrs.title ||
-      newErrs.group ||
-      newErrs.questions.some((q) => q.text || q.options?.some(Boolean));
-
+    const hasError = newErrs.title || newErrs.questions.some((q) => q.text || q.options?.some(Boolean));
     if (hasError) {
       if (newErrs.title) toast.error(t.validate.needTitle);
-      else if (newErrs.group) toast.error(t.validate.needGroup);
       else toast.error(t.validate.needFields);
       if (firstInvalidId) {
         setTimeout(() => {
@@ -164,7 +136,6 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups,
 
   async function handleSubmit() {
     if (!validate()) return;
-    // Clamp questions_per_attempt at the count of questions
     const qpa = test.questions_per_attempt;
     if (qpa != null && qpa > questions.length) {
       setTest({ ...test, questions_per_attempt: null });
@@ -178,10 +149,42 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups,
     }
   }
 
-  const selectedGroups = groups.filter((g) => test.group_ids.includes(g.id));
+  function copyCode() {
+    if (!testCode) return;
+    navigator.clipboard?.writeText(testCode).then(
+      () => toast.success(t.dashboard.copyTestCode),
+      () => toast.error(t.err.generic),
+    );
+  }
 
   return (
     <div className="space-y-8">
+      {/* ---- Test code badge (only when editing) ---- */}
+      {testCode ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-4 sm:p-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-hero text-primary-foreground shadow-glow">
+              <Info className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {t.editor.testCodeBadge}
+              </p>
+              <p className="font-mono text-2xl font-bold tracking-widest text-primary">{testCode}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{t.dashboard.attachToGroupHint}</p>
+            </div>
+          </div>
+          <Button variant="outline" className="rounded-full" onClick={copyCode}>
+            {t.copy}
+          </Button>
+        </div>
+      ) : (
+        <div className="flex items-start gap-2 rounded-2xl border border-accent/30 bg-accent/5 p-3 text-sm text-muted-foreground">
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+          <p>{t.editor.testCodeAfterCreate}</p>
+        </div>
+      )}
+
       {/* ---- Settings ---- */}
       <section className="rounded-2xl border bg-card p-6 shadow-card">
         <h2 className="mb-4 font-display text-xl font-semibold">{t.editor.settingsTitle}</h2>
@@ -267,7 +270,7 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups,
             <p className="mt-1 text-xs text-muted-foreground">{t.editor.questionsPerAttemptHint}</p>
           </div>
 
-          <div className="flex items-start justify-between gap-3 rounded-lg border p-3">
+          <div className="md:col-span-2 flex items-start justify-between gap-3 rounded-lg border p-3">
             <div>
               <div className="flex items-center gap-1.5">
                 <Label className="cursor-pointer">{t.editor.randomLabel}</Label>
@@ -280,101 +283,6 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups,
               onCheckedChange={(v) => setTest({ ...test, random_enabled: v })}
             />
           </div>
-
-          <div className="flex items-start justify-between gap-3 rounded-lg border p-3">
-            <div>
-              <div className="flex items-center gap-1.5">
-                <Label className="cursor-pointer">{t.editor.publicLabel}</Label>
-                <HelpHint text={t.editor.help.public} />
-              </div>
-              <p className="mt-0.5 text-xs text-muted-foreground">{t.editor.publicDesc}</p>
-            </div>
-            <Switch
-              checked={test.is_public}
-              onCheckedChange={(v) => {
-                setTest({ ...test, is_public: v });
-                if (v) setErrors((er) => ({ ...er, group: false }));
-              }}
-            />
-          </div>
-
-          {!test.is_public && (
-            <div className="md:col-span-2 space-y-3">
-              <div>
-                <div className="mb-1.5 flex items-center gap-1.5">
-                  <Label htmlFor="group-trigger">{t.editor.groupLabel}</Label>
-                  <HelpHint text={t.editor.help.group} />
-                </div>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button
-                      id="group-trigger"
-                      type="button"
-                      aria-invalid={!!errors.group}
-                      className={`flex w-full min-h-10 flex-wrap items-center gap-1.5 rounded-md border bg-background px-3 py-2 text-left text-sm ${
-                        errors.group ? errBorder : "border-input"
-                      }`}
-                    >
-                      {selectedGroups.length === 0 ? (
-                        <span className="text-muted-foreground">{t.editor.groupPlaceholder}</span>
-                      ) : (
-                        selectedGroups.map((g) => (
-                          <span
-                            key={g.id}
-                            className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary"
-                          >
-                            <Users className="h-3 w-3" />
-                            {g.name}
-                            <X
-                              className="h-3 w-3 cursor-pointer hover:text-destructive"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleGroup(g.id);
-                              }}
-                            />
-                          </span>
-                        ))
-                      )}
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1" align="start">
-                    {groups.length === 0 ? (
-                      <p className="px-3 py-4 text-sm text-muted-foreground">{t.groups.emptyTitle}</p>
-                    ) : (
-                      <div className="max-h-64 overflow-auto">
-                        {groups.map((g) => {
-                          const checked = test.group_ids.includes(g.id);
-                          return (
-                            <button
-                              key={g.id}
-                              type="button"
-                              onClick={() => toggleGroup(g.id)}
-                              className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-sm hover:bg-muted"
-                            >
-                              <span
-                                className={`flex h-4 w-4 items-center justify-center rounded border ${
-                                  checked ? "border-primary bg-primary text-primary-foreground" : "border-input"
-                                }`}
-                              >
-                                {checked && <Check className="h-3 w-3" />}
-                              </span>
-                              {g.name}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </PopoverContent>
-                </Popover>
-                {errors.group && <FieldError>{t.validate.fieldRequired}</FieldError>}
-                <p className="mt-1 text-xs text-muted-foreground">{t.editor.groupsAttachedHint}</p>
-              </div>
-              <div className="flex items-start gap-2 rounded-lg border border-accent/30 bg-accent/5 p-3 text-xs text-muted-foreground">
-                <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                <p>{t.editor.help.autoCode}</p>
-              </div>
-            </div>
-          )}
         </div>
       </section>
 
@@ -398,7 +306,9 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups,
                     <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
                       {t.editor.questionN(qi + 1)}
                     </span>
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${difficultyToneClass(diff)}`}>
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${difficultyToneClass(diff)}`}
+                    >
                       {difficultyLabel(diff)}
                     </span>
                     <HelpHint text={t.editor.help.difficulty} />
@@ -459,7 +369,6 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, groups,
                 </div>
                 {qErr.options?.some(Boolean) && <FieldError>{t.validate.fieldRequired}</FieldError>}
 
-                {/* Explanation */}
                 <div className="mt-4">
                   <div className="mb-1.5 flex items-center gap-1.5">
                     <Label htmlFor={`q-${qi}-exp`} className="text-xs font-medium">

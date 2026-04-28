@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, Users, Globe, Lock, BarChart3, FileText, Copy, KeyRound } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, BarChart3, FileText, Copy, KeyRound, Hash } from "lucide-react";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
 import { safeQuery, safeMutation } from "@/lib/safe-query";
@@ -31,23 +31,23 @@ type MyTest = {
   id: string;
   title: string;
   description: string | null;
-  is_public: boolean;
+  test_code: string;
   random_enabled: boolean;
   max_attempts: number;
   time_limit: number;
   created_at: string;
-  group_id: string | null;
-  access_code: string | null;
   question_count: number;
   attempt_count: number;
+  group_count: number;
 };
 
 type MyGroup = {
   id: string;
   name: string;
   description: string | null;
+  access_code: string;
   testCount: number;
-  activeTest: { id: string; title: string; access_code: string | null } | null;
+  memberCount: number;
 };
 
 function DashboardPage() {
@@ -86,20 +86,11 @@ function DashboardPage() {
         toast.error(map[res?.error] ?? t.err.generic);
         return;
       }
-      if (res.already) {
-        toast.success(t.groups.joinAlready);
-      } else {
-        toast.success(t.groups.joinSuccess);
-      }
+      if (res.already) toast.success(t.groups.joinAlready);
+      else toast.success(t.groups.joinSuccess);
       setJoinOpen(false);
       setJoinCode("");
-      if (res.group_id) {
-        navigate({ to: "/groups/$id", params: { id: res.group_id } });
-      } else if (res.test_id) {
-        navigate({ to: "/quiz/$id", params: { id: res.test_id } });
-      } else {
-        toast.message(t.groups.joinNoGroup);
-      }
+      if (res.group_id) navigate({ to: "/groups/$id", params: { id: res.group_id } });
     } catch {
       toast.error(t.err.network);
     } finally {
@@ -118,7 +109,7 @@ function DashboardPage() {
       const { data, error } = await supabase
         .from("tests")
         .select(
-          "id, title, description, is_public, random_enabled, max_attempts, time_limit, created_at, group_id, access_code, questions(count), results(count)",
+          "id, title, description, test_code, random_enabled, max_attempts, time_limit, created_at, questions(count), test_attempts(count), test_groups(count)",
         )
         .eq("creator_id", user.id)
         .order("created_at", { ascending: false });
@@ -130,15 +121,14 @@ function DashboardPage() {
             id: tt.id,
             title: tt.title,
             description: tt.description,
-            is_public: tt.is_public,
+            test_code: tt.test_code,
             random_enabled: tt.random_enabled,
             max_attempts: tt.max_attempts,
             time_limit: tt.time_limit,
             created_at: tt.created_at,
-            group_id: tt.group_id,
-            access_code: tt.access_code,
             question_count: tt.questions?.[0]?.count ?? 0,
-            attempt_count: tt.results?.[0]?.count ?? 0,
+            attempt_count: tt.test_attempts?.[0]?.count ?? 0,
+            group_count: tt.test_groups?.[0]?.count ?? 0,
           })),
         );
       }
@@ -147,23 +137,20 @@ function DashboardPage() {
         () =>
           supabase
             .from("groups")
-            .select("id, name, description, tests(id, title, access_code, is_public)")
+            .select("id, name, description, access_code, test_groups(count), group_members(count)")
             .eq("creator_id", user.id)
             .order("created_at", { ascending: false }),
         { fallback: [] as any[] },
       );
       setGroups(
-        (gData ?? []).map((g: any) => {
-          const ts = Array.isArray(g.tests) ? g.tests : [];
-          const active = ts.find((tt: any) => tt.is_public === false) ?? null;
-          return {
-            id: g.id,
-            name: g.name,
-            description: g.description,
-            testCount: ts.length,
-            activeTest: active ? { id: active.id, title: active.title, access_code: active.access_code } : null,
-          };
-        }),
+        (gData ?? []).map((g: any) => ({
+          id: g.id,
+          name: g.name,
+          description: g.description,
+          access_code: g.access_code,
+          testCount: g.test_groups?.[0]?.count ?? 0,
+          memberCount: g.group_members?.[0]?.count ?? 0,
+        })),
       );
     } catch {
       toast.error(t.err.network);
@@ -193,16 +180,11 @@ function DashboardPage() {
     setGroups((gs) => gs.filter((g) => g.id !== id));
   }
 
-  function copyCode(code: string) {
+  function copyCode(code: string, label: string) {
     navigator.clipboard?.writeText(code).then(
-      () => toast.success(t.groups.codeCopied),
+      () => toast.success(label),
       () => toast.error(t.err.generic),
     );
-  }
-
-  function newTestClick() {
-    // No requirement to have groups for public tests; user can choose privacy in editor
-    navigate({ to: "/quiz/new" });
   }
 
   if (authLoading || !user) {
@@ -237,7 +219,7 @@ function DashboardPage() {
             {t.groups.joinByCode}
           </Button>
           {tab === "tests" ? (
-            <Button onClick={newTestClick}>
+            <Button onClick={() => navigate({ to: "/quiz/new" })}>
               <Plus className="mr-2 h-4 w-4" />
               {t.dashboard.newQuiz}
             </Button>
@@ -272,91 +254,78 @@ function DashboardPage() {
               title={t.dashboard.emptyTitle}
               desc={t.dashboard.emptyDesc}
               cta={t.dashboard.emptyCta}
-              onClick={newTestClick}
+              onClick={() => navigate({ to: "/quiz/new" })}
             />
           ) : (
             <>
               <div className="grid gap-4 sm:grid-cols-2">
-                {tests.slice((testsPage - 1) * PAGE_SIZE, testsPage * PAGE_SIZE).map((tt) => {
-                  const groupName = groups.find((g) => g.id === tt.group_id)?.name;
-                  return (
-                    <div key={tt.id} className="rounded-2xl border bg-card p-5 shadow-card transition-shadow hover:shadow-elegant sm:p-6">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-display text-lg font-semibold leading-snug sm:text-xl">{tt.title}</h3>
-                          {tt.description && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{tt.description}</p>}
-                        </div>
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-                            tt.is_public ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {tt.is_public ? (
-                            <>
-                              <Globe className="h-3 w-3" /> {t.dashboard.public}
-                            </>
-                          ) : (
-                            <>
-                              <Lock className="h-3 w-3" /> {t.dashboard.private}
-                            </>
-                          )}
-                        </span>
-                      </div>
-                      {!tt.is_public && groupName && (
-                        <p className="mt-2 text-xs font-medium text-accent-foreground">{t.dashboard.forGroup(groupName)}</p>
-                      )}
-                      {!tt.is_public && tt.access_code && (
-                        <div className="mt-2 flex items-center gap-2 rounded-md bg-muted/50 px-2.5 py-1.5">
-                          <span className="font-mono text-sm tracking-wider">{tt.access_code}</span>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-6 w-6"
-                            onClick={() => copyCode(tt.access_code!)}
-                            aria-label={t.groups.copyCode}
-                          >
-                            <Copy className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      )}
-                      <div className="mt-4 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                        <span>{t.dashboard.questions(tt.question_count)}</span>
-                        <span>·</span>
-                        <span>{t.dashboard.minutes(Math.round(tt.time_limit / 60))}</span>
-                        <span>·</span>
-                        <span className="flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          {t.dashboard.attempts(tt.attempt_count)}
-                        </span>
-                        <span>·</span>
-                        <span>{t.dashboard.maxPerUser(tt.max_attempts)}</span>
-                      </div>
-                      <div className="mt-5 flex flex-wrap gap-2">
-                        <Link to="/quiz/$id/edit" params={{ id: tt.id }}>
-                          <Button size="sm" variant="outline">
-                            <Pencil className="mr-2 h-3.5 w-3.5" />
-                            {t.edit}
-                          </Button>
-                        </Link>
-                        <Link to="/quiz/$id/results" params={{ id: tt.id }}>
-                          <Button size="sm" variant="outline">
-                            <BarChart3 className="mr-2 h-3.5 w-3.5" />
-                            {t.dashboard.results}
-                          </Button>
-                        </Link>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                          onClick={() => deleteTest(tt.id)}
-                        >
-                          <Trash2 className="mr-2 h-3.5 w-3.5" />
-                          {t.delete}
-                        </Button>
+                {tests.slice((testsPage - 1) * PAGE_SIZE, testsPage * PAGE_SIZE).map((tt) => (
+                  <div
+                    key={tt.id}
+                    className="rounded-2xl border bg-card p-5 shadow-card transition-shadow hover:shadow-elegant sm:p-6"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-display text-lg font-semibold leading-snug sm:text-xl">{tt.title}</h3>
+                        {tt.description && (
+                          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{tt.description}</p>
+                        )}
                       </div>
                     </div>
-                  );
-                })}
+
+                    {/* Test code */}
+                    <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Hash className="h-3.5 w-3.5 shrink-0 text-primary" />
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                          {t.dashboard.testCode}
+                        </span>
+                        <span className="font-mono text-base font-bold tracking-widest text-primary">
+                          {tt.test_code}
+                        </span>
+                      </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        onClick={() => copyCode(tt.test_code, t.dashboard.copyTestCode)}
+                        aria-label={t.copy}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      <span>{t.dashboard.questions(tt.question_count)}</span>
+                      <span>·</span>
+                      <span>{t.dashboard.minutes(Math.round(tt.time_limit / 60))}</span>
+                      <span>·</span>
+                      <span className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {t.dashboard.attempts(tt.attempt_count)}
+                      </span>
+                      <span>·</span>
+                      <span>{t.dashboard.forGroups(tt.group_count)}</span>
+                    </div>
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      <Link to="/quiz/$id/edit" params={{ id: tt.id }}>
+                        <Button size="sm" variant="outline">
+                          <Pencil className="mr-2 h-3.5 w-3.5" />
+                          {t.edit}
+                        </Button>
+                      </Link>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => deleteTest(tt.id)}
+                      >
+                        <Trash2 className="mr-2 h-3.5 w-3.5" />
+                        {t.delete}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
               <PaginationBar page={testsPage} pageSize={PAGE_SIZE} total={tests.length} onChange={setTestsPage} />
             </>
@@ -387,7 +356,9 @@ function DashboardPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <h3 className="font-display text-lg font-semibold leading-snug sm:text-xl">{g.name}</h3>
-                        {g.description && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{g.description}</p>}
+                        {g.description && (
+                          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{g.description}</p>
+                        )}
                       </div>
                       <Button
                         size="icon"
@@ -402,32 +373,34 @@ function DashboardPage() {
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                    <p className="mt-3 text-xs text-muted-foreground">{t.groups.cardTests(g.testCount)}</p>
-                    {g.activeTest ? (
-                      <div className="mt-3 rounded-xl border bg-muted/30 p-3">
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t.groups.activeTest}</p>
-                        <p className="mt-1 truncate text-sm font-medium">{g.activeTest.title}</p>
-                        {g.activeTest.access_code && (
-                          <div className="mt-2 flex items-center justify-between gap-2 rounded-md bg-background px-2.5 py-1.5">
-                            <span className="font-mono text-sm tracking-wider">{g.activeTest.access_code}</span>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-6 w-6"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                copyCode(g.activeTest!.access_code!);
-                              }}
-                              aria-label={t.groups.copyCode}
-                            >
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        )}
+
+                    {/* Group access code */}
+                    <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-accent/30 bg-accent/5 px-3 py-2">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <KeyRound className="h-3.5 w-3.5 shrink-0 text-accent" />
+                        <span className="font-mono text-sm font-bold tracking-widest text-accent">
+                          {g.access_code}
+                        </span>
                       </div>
-                    ) : (
-                      <p className="mt-3 text-xs text-muted-foreground">{t.groups.noActiveTest}</p>
-                    )}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          copyCode(g.access_code, t.groups.codeCopied);
+                        }}
+                        aria-label={t.copy}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+                      <span>{t.groups.cardTests(g.testCount)}</span>
+                      <span>·</span>
+                      <span>{t.groups.cardMembers(g.memberCount)}</span>
+                    </div>
                   </Link>
                 ))}
               </div>

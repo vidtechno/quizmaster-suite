@@ -101,12 +101,12 @@ function ProfilePage() {
             <p className="mt-1 text-sm text-muted-foreground">@{profile?.username} · {profile?.phone}</p>
             {profile?.bio && <p className="mt-2 max-w-2xl text-sm text-foreground/80">{profile.bio}</p>}
           </div>
-          <Link to="/profile/edit">
-            <Button variant="outline" className="rounded-full">
+          <Button variant="outline" className="rounded-full" asChild>
+            <Link to="/profile/edit">
               <Pencil className="mr-2 h-3.5 w-3.5" />
               {t.profile.edit}
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
         <div className="mt-6 grid grid-cols-3 gap-3">
           <Stat icon={Trophy} label={t.profile.myAttempts} value={stats.total} accent="primary" />
@@ -129,7 +129,7 @@ function ProfilePage() {
             <Trophy className="h-6 w-6" />
           </div>
           <p className="mt-4 text-muted-foreground">{t.profile.noAttempts}</p>
-          <Link to="/explore">
+          <Link to="/dashboard">
             <Button className="mt-6 rounded-full bg-gradient-hero shadow-glow">{t.profile.exploreCta}</Button>
           </Link>
         </div>

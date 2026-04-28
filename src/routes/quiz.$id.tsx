@@ -3,9 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Clock, Trophy, Shuffle, Lock, Globe, ArrowRight, Medal, CheckCircle2, XCircle } from "lucide-react";
+import { Clock, Trophy, Shuffle, ArrowRight, CheckCircle2, XCircle, Hash } from "lucide-react";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
 
@@ -20,8 +18,7 @@ type Test = {
   description: string | null;
   time_limit: number;
   random_enabled: boolean;
-  is_public: boolean;
-  access_code: string | null;
+  test_code: string;
   max_attempts: number;
   creator_id: string;
   questions_per_attempt: number | null;
@@ -35,7 +32,7 @@ type Question = {
   explanation: string | null;
 };
 
-type Mode = "intro" | "code-gate" | "running" | "submitted";
+type Mode = "intro" | "running" | "submitted";
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -54,12 +51,11 @@ function QuizPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState<Mode>("intro");
-  const [codeInput, setCodeInput] = useState("");
   const [attemptsUsed, setAttemptsUsed] = useState(0);
-  const [leaderboard, setLeaderboard] = useState<
-    Array<{ score: number; time_spent: number; total_questions: number; profiles: { username: string } | null }>
-  >([]);
-  const [, setResultId] = useState<string | null>(null);
+  const [attemptLimit, setAttemptLimit] = useState<number | null>(null);
+  const [accessChecked, setAccessChecked] = useState(false);
+  const [accessOk, setAccessOk] = useState(false);
+  const [accessError, setAccessError] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState<{ score: number; total: number; time: number } | null>(null);
 
   // running state
@@ -77,9 +73,9 @@ function QuizPage() {
         const { data: tt, error } = await supabase.from("tests").select("*").eq("id", id).maybeSingle();
         if (error || !tt) {
           toast.error(t.player.notFound);
-          return navigate({ to: "/explore" });
+          return navigate({ to: "/dashboard" });
         }
-        setTest(tt as Test);
+        setTest(tt as unknown as Test);
 
         const { data: qs } = await supabase.from("questions").select("*").eq("test_id", id).order("position");
         setQuestions(
@@ -93,43 +89,23 @@ function QuizPage() {
           })),
         );
 
-        // Leaderboard if public
-        if ((tt as Test).is_public) {
-          const { data: lb } = await supabase
-            .from("results")
-            .select("score, time_spent, total_questions, user_id")
-            .eq("test_id", id)
-            .order("score", { ascending: false })
-            .order("time_spent", { ascending: true })
-            .limit(20);
-          const userIds = Array.from(new Set((lb ?? []).map((r: any) => r.user_id).filter(Boolean)));
-          let pmap: Record<string, { username: string }> = {};
-          if (userIds.length) {
-            const { data: profs } = await supabase
-              .from("profiles")
-              .select("id, username")
-              .in("id", userIds);
-            (profs ?? []).forEach((p: any) => {
-              pmap[p.id] = { username: p.username };
-            });
-          }
-          setLeaderboard(
-            (lb ?? []).map((r: any) => ({
-              score: r.score,
-              time_spent: r.time_spent,
-              total_questions: r.total_questions,
-              profiles: pmap[r.user_id] ?? null,
-            })),
-          );
-        }
-
         if (user) {
-          const { count } = await supabase
-            .from("results")
-            .select("id", { count: "exact", head: true })
-            .eq("test_id", id)
-            .eq("user_id", user.id);
-          setAttemptsUsed(count ?? 0);
+          const { data: chk } = await supabase.rpc("can_user_attempt_test", {
+            _test_id: id,
+            _user_id: user.id,
+          });
+          const c = chk as any;
+          if (c?.ok) {
+            setAccessOk(true);
+            setAttemptLimit(c.limit ?? null);
+            setAttemptsUsed(c.used ?? 0);
+          } else {
+            setAccessOk(false);
+            setAccessError(c?.error ?? "not_member");
+          }
+          setAccessChecked(true);
+        } else {
+          setAccessChecked(true);
         }
       } catch {
         toast.error(t.err.network);
@@ -161,31 +137,19 @@ function QuizPage() {
       toast.error(t.player.needLogin);
       return navigate({ to: "/login" });
     }
-    if (!test) return;
-    if (attemptsUsed >= test.max_attempts) {
-      return toast.error(t.player.noAttemptsLeft(test.max_attempts));
-    }
-    if (!test.is_public) {
-      setMode("code-gate");
-      return;
-    }
-    beginRunning();
-  }
-
-  function submitCode() {
-    if (!test) return;
-    if (codeInput.trim() !== (test.access_code ?? "")) {
-      return toast.error(t.player.wrongCode);
+    if (!test || !accessOk) return;
+    if (attemptLimit != null && attemptsUsed >= attemptLimit) {
+      return toast.error(t.player.noAttemptsLeft(attemptLimit));
     }
     beginRunning();
   }
 
   function beginRunning() {
     if (!test || questions.length === 0) return toast.error(t.player.noQuestions);
-    // Always shuffle when picking a subset; otherwise honor random_enabled flag
-    const subsetSize = test.questions_per_attempt && test.questions_per_attempt > 0
-      ? Math.min(test.questions_per_attempt, questions.length)
-      : questions.length;
+    const subsetSize =
+      test.questions_per_attempt && test.questions_per_attempt > 0
+        ? Math.min(test.questions_per_attempt, questions.length)
+        : questions.length;
     const needShuffle = test.random_enabled || subsetSize < questions.length;
     const baseQs = (needShuffle ? shuffle(questions) : questions).slice(0, subsetSize);
     const prepared = baseQs.map((q) => {
@@ -224,23 +188,25 @@ function QuizPage() {
     });
 
     try {
-      const { data, error } = await supabase
-        .from("results")
-        .insert({
-          user_id: user.id,
-          test_id: test.id,
-          score,
-          total_questions: runQuestions.length,
-          time_spent: timeSpent,
-          answers_log: log,
-        })
-        .select("id")
-        .single();
+      const nextAttempt = attemptsUsed + 1;
+      const { error } = await supabase.from("test_attempts").insert({
+        user_id: user.id,
+        test_id: test.id,
+        attempt_number: nextAttempt,
+        score,
+        total_questions: runQuestions.length,
+        time_spent: timeSpent,
+        answers_log: log,
+        status: "completed",
+        submitted_at: new Date().toISOString(),
+      });
       if (error) {
         toast.error(t.err.saveFailed);
         return;
       }
-      setResultId(data.id);
+      // Update question stats in background (non-critical)
+      supabase.rpc("recompute_question_stats", { _test_id: test.id }).then(() => {});
+      setAttemptsUsed(nextAttempt);
       setLastResult({ score, total: runQuestions.length, time: timeSpent });
       setMode("submitted");
     } catch {
@@ -259,36 +225,35 @@ function QuizPage() {
 
   // ---------- INTRO ----------
   if (mode === "intro") {
-    const canTake = !user || attemptsUsed < test.max_attempts;
+    const isCreator = user?.id === test.creator_id;
+    const canTake = !!user && (isCreator || (accessOk && (attemptLimit == null || attemptsUsed < attemptLimit)));
+    const noAccessMsg =
+      accessError === "not_member"
+        ? t.player.notMember
+        : accessError === "limit_reached"
+          ? t.player.noAttemptsLeft(attemptLimit ?? test.max_attempts)
+          : null;
+
     return (
       <div className="mx-auto max-w-3xl px-4 py-10 sm:py-12">
-        <div className="rounded-2xl border bg-card p-6 shadow-card sm:p-8">
+        <div className="overflow-hidden rounded-3xl border bg-gradient-mesh p-6 shadow-card sm:p-8">
           <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
-            <span
-              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium ${
-                test.is_public ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"
-              }`}
-            >
-              {test.is_public ? (
-                <>
-                  <Globe className="h-3 w-3" /> {t.player.publicTag}
-                </>
-              ) : (
-                <>
-                  <Lock className="h-3 w-3" /> {t.player.privateTag}
-                </>
-              )}
+            <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-0.5 font-mono font-semibold text-primary">
+              <Hash className="h-3 w-3" />
+              {t.player.testCodeBadge(test.test_code)}
             </span>
             {test.random_enabled && (
               <span className="inline-flex items-center gap-1 rounded-full bg-accent/20 px-2 py-0.5 font-medium text-accent-foreground">
                 <Shuffle className="h-3 w-3" /> {t.player.randomTag}
               </span>
             )}
-            {test.questions_per_attempt && test.questions_per_attempt > 0 && test.questions_per_attempt < questions.length && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 font-medium text-primary">
-                {t.player.subsetTag(test.questions_per_attempt, questions.length)}
-              </span>
-            )}
+            {test.questions_per_attempt &&
+              test.questions_per_attempt > 0 &&
+              test.questions_per_attempt < questions.length && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 font-medium text-primary">
+                  {t.player.subsetTag(test.questions_per_attempt, questions.length)}
+                </span>
+              )}
           </div>
           <h1 className="font-display text-3xl font-semibold sm:text-4xl">{test.title}</h1>
           {test.description && <p className="mt-3 text-muted-foreground">{test.description}</p>}
@@ -304,12 +269,23 @@ function QuizPage() {
             />
             <Stat icon={Clock} label={t.player.timeLimitStat} value={t.player.badgeMin(Math.round(test.time_limit / 60))} />
             <Stat
-              icon={Medal}
+              icon={Trophy}
               label={t.player.attemptsStat}
-              value={user ? `${attemptsUsed} / ${test.max_attempts}` : `${test.max_attempts}`}
+              value={
+                isCreator
+                  ? "∞"
+                  : attemptLimit != null
+                    ? `${attemptsUsed} / ${attemptLimit}`
+                    : `${attemptsUsed}`
+              }
             />
           </div>
-          <div className="mt-8">
+          {noAccessMsg && (
+            <div className="mt-6 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+              {noAccessMsg}
+            </div>
+          )}
+          <div className="mt-8 flex flex-wrap gap-3">
             <Button size="lg" onClick={startAttempt} disabled={!canTake}>
               {canTake ? (
                 <>
@@ -319,65 +295,12 @@ function QuizPage() {
                 t.player.noAttempts
               )}
             </Button>
+            <Link to="/dashboard">
+              <Button size="lg" variant="outline">
+                {t.player.backToDashboard}
+              </Button>
+            </Link>
           </div>
-        </div>
-
-        {test.is_public && (
-          <div className="mt-10">
-            <h2 className="mb-4 flex items-center gap-2 font-display text-2xl font-semibold">
-              <Trophy className="h-5 w-5 text-accent" /> {t.player.leaderboard}
-            </h2>
-            {leaderboard.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t.player.noAttemptsYet}</p>
-            ) : (
-              <div className="overflow-hidden rounded-2xl border bg-card shadow-card">
-                <table className="w-full text-sm">
-                  <thead className="bg-muted/50 text-xs uppercase tracking-wider text-muted-foreground">
-                    <tr>
-                      <th className="px-4 py-3 text-left">{t.player.rank}</th>
-                      <th className="px-4 py-3 text-left">{t.player.user}</th>
-                      <th className="px-4 py-3 text-right">{t.player.score}</th>
-                      <th className="px-4 py-3 text-right">{t.player.time}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {leaderboard.map((r, i) => (
-                      <tr key={i} className="border-t">
-                        <td className="px-4 py-2.5 font-medium">{i + 1}</td>
-                        <td className="px-4 py-2.5">@{r.profiles?.username ?? "anonymous"}</td>
-                        <td className="px-4 py-2.5 text-right font-medium">
-                          {r.score}/{r.total_questions}
-                        </td>
-                        <td className="px-4 py-2.5 text-right text-muted-foreground">
-                          {Math.floor(r.time_spent / 60)}m {r.time_spent % 60}s
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // ---------- CODE GATE ----------
-  if (mode === "code-gate") {
-    return (
-      <div className="mx-auto max-w-md px-4 py-16 sm:py-20">
-        <div className="rounded-2xl border bg-card p-6 text-center shadow-card sm:p-8">
-          <Lock className="mx-auto h-10 w-10 text-muted-foreground" />
-          <h2 className="mt-4 font-display text-2xl font-semibold">{t.player.privateTitle}</h2>
-          <p className="mt-2 text-sm text-muted-foreground">{t.player.privateDesc}</p>
-          <div className="mt-6 text-left">
-            <Label htmlFor="code">{t.player.accessCode}</Label>
-            <Input id="code" value={codeInput} onChange={(e) => setCodeInput(e.target.value)} autoFocus />
-          </div>
-          <Button className="mt-6 w-full" onClick={submitCode}>
-            {t.continue}
-          </Button>
         </div>
       </div>
     );
@@ -504,14 +427,9 @@ function QuizPage() {
           })}
         </div>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link to="/explore">
-            <Button variant="outline">{t.player.backToExplore}</Button>
+          <Link to="/dashboard">
+            <Button variant="outline">{t.player.backToDashboard}</Button>
           </Link>
-          {user?.id === test.creator_id && (
-            <Link to="/quiz/$id/results" params={{ id: test.id }}>
-              <Button>{t.player.viewAllResults}</Button>
-            </Link>
-          )}
         </div>
       </div>
     );

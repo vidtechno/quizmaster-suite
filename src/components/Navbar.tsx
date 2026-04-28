@@ -3,7 +3,7 @@ import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import { useAuthModal } from "@/components/AuthModal";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, Sparkles, LayoutDashboard, Users, Compass, User } from "lucide-react";
+import { Moon, Sun, Sparkles, LayoutDashboard, Users, User } from "lucide-react";
 import { t } from "@/lib/i18n";
 
 export function Navbar() {
@@ -30,7 +30,6 @@ export function Navbar() {
           <span className="font-display text-xl font-bold tracking-tight">{t.brand}</span>
         </Link>
         <nav className="flex items-center gap-0.5 sm:gap-1">
-          <NavItem to="/explore" icon={Compass} label={t.nav.explore} />
           {user ? (
             <>
               <NavItem to="/dashboard" icon={LayoutDashboard} label={t.nav.dashboard} />
@@ -68,7 +67,7 @@ function NavItem({
   label,
   hideOnMobile,
 }: {
-  to: "/explore" | "/dashboard" | "/groups" | "/profile";
+  to: "/dashboard" | "/groups" | "/profile";
   icon: React.ElementType;
   label: string;
   hideOnMobile?: boolean;
