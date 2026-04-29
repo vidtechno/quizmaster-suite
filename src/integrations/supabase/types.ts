@@ -387,10 +387,18 @@ export type Database = {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
       }
+      is_test_creator: {
+        Args: { _test_id: string; _user_id: string }
+        Returns: boolean
+      }
       join_group_by_code: { Args: { _code: string }; Returns: Json }
       recompute_question_stats: {
         Args: { _test_id: string }
         Returns: undefined
+      }
+      user_can_view_test: {
+        Args: { _test_id: string; _user_id: string }
+        Returns: boolean
       }
     }
     Enums: {
