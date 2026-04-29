@@ -542,12 +542,23 @@ function GroupDetailPage() {
                         </Button>
                       </Link>
                       {isCreator && (
-                        <Link to="/quiz/$id/edit" params={{ id: tt.id }}>
-                          <Button size="sm" variant="outline" className="rounded-full">
-                            <Settings className="mr-2 h-3.5 w-3.5" />
-                            {t.edit}
+                        <>
+                          <Link to="/quiz/$id/edit" params={{ id: tt.id }}>
+                            <Button size="sm" variant="outline" className="rounded-full">
+                              <Settings className="mr-2 h-3.5 w-3.5" />
+                              {t.edit}
+                            </Button>
+                          </Link>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="rounded-full text-muted-foreground hover:text-destructive"
+                            onClick={() => detachTest(tt.id)}
+                          >
+                            <Trash2 className="mr-2 h-3.5 w-3.5" />
+                            {t.groups.detach}
                           </Button>
-                        </Link>
+                        </>
                       )}
                     </div>
                   </div>
