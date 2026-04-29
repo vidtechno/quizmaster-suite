@@ -826,6 +826,44 @@ function GroupDetailPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Attach test by code dialog */}
+      <Dialog open={attachOpen} onOpenChange={setAttachOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <LinkIcon className="h-5 w-5 text-primary" />
+              {t.groups.attachTestByCode}
+            </DialogTitle>
+            <DialogDescription>{t.groups.attachTestDesc}</DialogDescription>
+          </DialogHeader>
+          <div>
+            <Label htmlFor="attach-code">{t.groups.attachTestPh}</Label>
+            <Input
+              id="attach-code"
+              value={attachCode}
+              onChange={(e) => setAttachCode(e.target.value.toUpperCase())}
+              placeholder={t.groups.attachTestPh}
+              maxLength={6}
+              autoFocus
+              className="font-mono uppercase tracking-widest"
+              onKeyDown={(e) => e.key === "Enter" && attachTest()}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAttachOpen(false)} className="rounded-full">
+              {t.cancel}
+            </Button>
+            <Button
+              onClick={attachTest}
+              disabled={attaching || attachCode.trim().length < 4}
+              className="rounded-full bg-gradient-hero shadow-glow"
+            >
+              {attaching ? t.groups.adding : t.groups.attachSubmit}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Attempt review dialog */}
       <Dialog open={!!openAttempt} onOpenChange={(o) => !o && setOpenAttempt(null)}>
         <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
