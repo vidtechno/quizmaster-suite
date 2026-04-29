@@ -30,6 +30,7 @@ import {
   Play,
   Crown,
   Medal,
+  LinkIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
