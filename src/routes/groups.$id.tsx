@@ -30,6 +30,7 @@ import {
   Play,
   Crown,
   Medal,
+  LinkIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
@@ -69,8 +70,7 @@ type Attempt = {
 type LinkedTest = {
   id: string;
   title: string;
-  access_code: string | null;
-  is_public: boolean;
+  test_code: string | null;
   question_count: number;
 };
 
@@ -109,6 +109,10 @@ function GroupDetailPage() {
 
   const [openAttempt, setOpenAttempt] = useState<Attempt | null>(null);
   const [viewAllTest, setViewAllTest] = useState<LinkedTest | null>(null);
+
+  const [attachOpen, setAttachOpen] = useState(false);
+  const [attachCode, setAttachCode] = useState("");
+  const [attaching, setAttaching] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/login" });
@@ -159,39 +163,21 @@ function GroupDetailPage() {
         }
       }
 
-      // Linked tests via test_groups (junction). Fall back to legacy tests.group_id.
+      // Linked tests via test_groups (junction).
       const { data: tgRows } = await supabase
         .from("test_groups")
-        .select("test_id, tests(id, title, access_code, is_public, questions(count))")
+        .select("test_id, tests(id, title, test_code, questions(count))")
         .eq("group_id", id);
 
-      let testRows: LinkedTest[] = (tgRows ?? [])
+      const testRows: LinkedTest[] = (tgRows ?? [])
         .map((r: any) => r.tests)
         .filter(Boolean)
         .map((tt: any) => ({
           id: tt.id,
           title: tt.title,
-          access_code: tt.access_code,
-          is_public: tt.is_public,
+          test_code: tt.test_code,
           question_count: tt.questions?.[0]?.count ?? 0,
         }));
-
-      // legacy tests linked via tests.group_id only
-      const { data: legacyTs } = await supabase
-        .from("tests")
-        .select("id, title, access_code, is_public, questions(count)")
-        .eq("group_id", id);
-      (legacyTs ?? []).forEach((tt: any) => {
-        if (!testRows.find((x) => x.id === tt.id)) {
-          testRows.push({
-            id: tt.id,
-            title: tt.title,
-            access_code: tt.access_code,
-            is_public: tt.is_public,
-            question_count: tt.questions?.[0]?.count ?? 0,
-          });
-        }
-      });
       setLinkedTests(testRows);
 
       // Members (creator only — for non-creators we still need profile lookup for attempt names)
@@ -365,6 +351,53 @@ function GroupDetailPage() {
     );
   }
 
+  async function attachTest() {
+    const code = attachCode.trim().toUpperCase();
+    if (!code) return;
+    setAttaching(true);
+    try {
+      const { data, error } = await supabase.rpc("attach_test_to_group", {
+        _test_code: code,
+        _group_id: id,
+      });
+      if (error) {
+        toast.error(t.err.network);
+        return;
+      }
+      const r = data as { ok: boolean; error?: string; already?: boolean };
+      if (!r?.ok) {
+        const msg =
+          r?.error === "test_not_found"
+            ? t.groups.attachNotFound
+            : r?.error === "not_group_owner"
+              ? t.groups.attachNotOwner
+              : t.err.generic;
+        toast.error(msg);
+        return;
+      }
+      toast.success(r.already ? t.groups.attachAlready : t.groups.attachOk);
+      setAttachOpen(false);
+      setAttachCode("");
+      load();
+    } finally {
+      setAttaching(false);
+    }
+  }
+
+  async function detachTest(testId: string) {
+    if (!confirm(t.groups.confirmDetach)) return;
+    const { data, error } = await supabase.rpc("detach_test_from_group", {
+      _test_id: testId,
+      _group_id: id,
+    });
+    if (error || !(data as any)?.ok) {
+      toast.error(t.err.generic);
+      return;
+    }
+    toast.success(t.groups.detached);
+    setLinkedTests((xs) => xs.filter((x) => x.id !== testId));
+  }
+
   const stats = useMemo(() => {
     const total = attempts.length;
     const avg = total
@@ -450,7 +483,18 @@ function GroupDetailPage() {
 
       {/* Linked tests */}
       <div className="mb-8">
-        <h2 className="mb-4 font-display text-xl font-semibold sm:text-2xl">{t.groups.linkedTests}</h2>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-xl font-semibold sm:text-2xl">{t.groups.linkedTests}</h2>
+          {isCreator && (
+            <Button
+              onClick={() => setAttachOpen(true)}
+              className="rounded-full bg-gradient-hero shadow-glow"
+            >
+              <LinkIcon className="mr-2 h-4 w-4" />
+              {t.groups.attachTestByCode}
+            </Button>
+          )}
+        </div>
         {linkedTests.length === 0 ? (
           <div className="rounded-3xl border bg-card p-10 text-center text-muted-foreground shadow-card">
             {t.groups.noLinkedTests}
@@ -472,16 +516,16 @@ function GroupDetailPage() {
                         <span>{t.dashboard.questions(tt.question_count)}</span>
                         <span>·</span>
                         <span>{board.length} {t.groups.uniqueTakers.toLowerCase()}</span>
-                        {tt.access_code && !tt.is_public && (
+                        {tt.test_code && (
                           <>
                             <span>·</span>
                             <span className="inline-flex items-center gap-1 font-mono">
-                              <span>{tt.access_code}</span>
+                              <span>{tt.test_code}</span>
                               <Button
                                 size="icon"
                                 variant="ghost"
                                 className="h-5 w-5"
-                                onClick={() => copyCode(tt.access_code!)}
+                                onClick={() => copyCode(tt.test_code!)}
                               >
                                 <Copy className="h-3 w-3" />
                               </Button>
@@ -498,12 +542,23 @@ function GroupDetailPage() {
                         </Button>
                       </Link>
                       {isCreator && (
-                        <Link to="/quiz/$id/edit" params={{ id: tt.id }}>
-                          <Button size="sm" variant="outline" className="rounded-full">
-                            <Settings className="mr-2 h-3.5 w-3.5" />
-                            {t.edit}
+                        <>
+                          <Link to="/quiz/$id/edit" params={{ id: tt.id }}>
+                            <Button size="sm" variant="outline" className="rounded-full">
+                              <Settings className="mr-2 h-3.5 w-3.5" />
+                              {t.edit}
+                            </Button>
+                          </Link>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="rounded-full text-muted-foreground hover:text-destructive"
+                            onClick={() => detachTest(tt.id)}
+                          >
+                            <Trash2 className="mr-2 h-3.5 w-3.5" />
+                            {t.groups.detach}
                           </Button>
-                        </Link>
+                        </>
                       )}
                     </div>
                   </div>
@@ -766,6 +821,44 @@ function GroupDetailPage() {
             </Button>
             <Button onClick={saveGroup} className="rounded-full bg-gradient-hero">
               {t.save}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Attach test by code dialog */}
+      <Dialog open={attachOpen} onOpenChange={setAttachOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <LinkIcon className="h-5 w-5 text-primary" />
+              {t.groups.attachTestByCode}
+            </DialogTitle>
+            <DialogDescription>{t.groups.attachTestDesc}</DialogDescription>
+          </DialogHeader>
+          <div>
+            <Label htmlFor="attach-code">{t.groups.attachTestPh}</Label>
+            <Input
+              id="attach-code"
+              value={attachCode}
+              onChange={(e) => setAttachCode(e.target.value.toUpperCase())}
+              placeholder={t.groups.attachTestPh}
+              maxLength={6}
+              autoFocus
+              className="font-mono uppercase tracking-widest"
+              onKeyDown={(e) => e.key === "Enter" && attachTest()}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAttachOpen(false)} className="rounded-full">
+              {t.cancel}
+            </Button>
+            <Button
+              onClick={attachTest}
+              disabled={attaching || attachCode.trim().length < 4}
+              className="rounded-full bg-gradient-hero shadow-glow"
+            >
+              {attaching ? t.groups.adding : t.groups.attachSubmit}
             </Button>
           </DialogFooter>
         </DialogContent>
