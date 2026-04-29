@@ -483,7 +483,18 @@ function GroupDetailPage() {
 
       {/* Linked tests */}
       <div className="mb-8">
-        <h2 className="mb-4 font-display text-xl font-semibold sm:text-2xl">{t.groups.linkedTests}</h2>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-xl font-semibold sm:text-2xl">{t.groups.linkedTests}</h2>
+          {isCreator && (
+            <Button
+              onClick={() => setAttachOpen(true)}
+              className="rounded-full bg-gradient-hero shadow-glow"
+            >
+              <LinkIcon className="mr-2 h-4 w-4" />
+              {t.groups.attachTestByCode}
+            </Button>
+          )}
+        </div>
         {linkedTests.length === 0 ? (
           <div className="rounded-3xl border bg-card p-10 text-center text-muted-foreground shadow-card">
             {t.groups.noLinkedTests}
