@@ -379,6 +379,14 @@ export type Database = {
           username: string
         }[]
       }
+      is_group_creator: {
+        Args: { _group_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_group_member: {
+        Args: { _group_id: string; _user_id: string }
+        Returns: boolean
+      }
       join_group_by_code: { Args: { _code: string }; Returns: Json }
       recompute_question_stats: {
         Args: { _test_id: string }
