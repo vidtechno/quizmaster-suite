@@ -110,6 +110,10 @@ function GroupDetailPage() {
   const [openAttempt, setOpenAttempt] = useState<Attempt | null>(null);
   const [viewAllTest, setViewAllTest] = useState<LinkedTest | null>(null);
 
+  const [attachOpen, setAttachOpen] = useState(false);
+  const [attachCode, setAttachCode] = useState("");
+  const [attaching, setAttaching] = useState(false);
+
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/login" });
   }, [user, authLoading, navigate]);
