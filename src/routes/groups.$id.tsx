@@ -159,39 +159,21 @@ function GroupDetailPage() {
         }
       }
 
-      // Linked tests via test_groups (junction). Fall back to legacy tests.group_id.
+      // Linked tests via test_groups (junction).
       const { data: tgRows } = await supabase
         .from("test_groups")
-        .select("test_id, tests(id, title, access_code, is_public, questions(count))")
+        .select("test_id, tests(id, title, test_code, questions(count))")
         .eq("group_id", id);
 
-      let testRows: LinkedTest[] = (tgRows ?? [])
+      const testRows: LinkedTest[] = (tgRows ?? [])
         .map((r: any) => r.tests)
         .filter(Boolean)
         .map((tt: any) => ({
           id: tt.id,
           title: tt.title,
-          access_code: tt.access_code,
-          is_public: tt.is_public,
+          test_code: tt.test_code,
           question_count: tt.questions?.[0]?.count ?? 0,
         }));
-
-      // legacy tests linked via tests.group_id only
-      const { data: legacyTs } = await supabase
-        .from("tests")
-        .select("id, title, access_code, is_public, questions(count)")
-        .eq("group_id", id);
-      (legacyTs ?? []).forEach((tt: any) => {
-        if (!testRows.find((x) => x.id === tt.id)) {
-          testRows.push({
-            id: tt.id,
-            title: tt.title,
-            access_code: tt.access_code,
-            is_public: tt.is_public,
-            question_count: tt.questions?.[0]?.count ?? 0,
-          });
-        }
-      });
       setLinkedTests(testRows);
 
       // Members (creator only — for non-creators we still need profile lookup for attempt names)
