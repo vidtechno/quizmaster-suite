@@ -454,16 +454,16 @@ function GroupDetailPage() {
                         <span>{t.dashboard.questions(tt.question_count)}</span>
                         <span>·</span>
                         <span>{board.length} {t.groups.uniqueTakers.toLowerCase()}</span>
-                        {tt.access_code && !tt.is_public && (
+                        {tt.test_code && (
                           <>
                             <span>·</span>
                             <span className="inline-flex items-center gap-1 font-mono">
-                              <span>{tt.access_code}</span>
+                              <span>{tt.test_code}</span>
                               <Button
                                 size="icon"
                                 variant="ghost"
                                 className="h-5 w-5"
-                                onClick={() => copyCode(tt.access_code!)}
+                                onClick={() => copyCode(tt.test_code!)}
                               >
                                 <Copy className="h-3 w-3" />
                               </Button>
