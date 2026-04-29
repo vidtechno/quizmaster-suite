@@ -70,8 +70,7 @@ type Attempt = {
 type LinkedTest = {
   id: string;
   title: string;
-  access_code: string | null;
-  is_public: boolean;
+  test_code: string | null;
   question_count: number;
 };
 
