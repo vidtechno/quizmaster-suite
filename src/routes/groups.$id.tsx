@@ -351,6 +351,53 @@ function GroupDetailPage() {
     );
   }
 
+  async function attachTest() {
+    const code = attachCode.trim().toUpperCase();
+    if (!code) return;
+    setAttaching(true);
+    try {
+      const { data, error } = await supabase.rpc("attach_test_to_group", {
+        _test_code: code,
+        _group_id: id,
+      });
+      if (error) {
+        toast.error(t.err.network);
+        return;
+      }
+      const r = data as { ok: boolean; error?: string; already?: boolean };
+      if (!r?.ok) {
+        const msg =
+          r?.error === "test_not_found"
+            ? t.groups.attachNotFound
+            : r?.error === "not_group_owner"
+              ? t.groups.attachNotOwner
+              : t.err.generic;
+        toast.error(msg);
+        return;
+      }
+      toast.success(r.already ? t.groups.attachAlready : t.groups.attachOk);
+      setAttachOpen(false);
+      setAttachCode("");
+      load();
+    } finally {
+      setAttaching(false);
+    }
+  }
+
+  async function detachTest(testId: string) {
+    if (!confirm(t.groups.confirmDetach)) return;
+    const { data, error } = await supabase.rpc("detach_test_from_group", {
+      _test_id: testId,
+      _group_id: id,
+    });
+    if (error || !(data as any)?.ok) {
+      toast.error(t.err.generic);
+      return;
+    }
+    toast.success(t.groups.detached);
+    setLinkedTests((xs) => xs.filter((x) => x.id !== testId));
+  }
+
   const stats = useMemo(() => {
     const total = attempts.length;
     const avg = total
