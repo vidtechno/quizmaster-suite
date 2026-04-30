@@ -288,12 +288,8 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, testCod
 
       {/* ---- Questions ---- */}
       <section>
-        <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="mb-4">
           <h2 className="font-display text-xl font-semibold">{t.editor.questionsTitle(questions.length)}</h2>
-          <Button variant="outline" size="sm" onClick={addQ}>
-            <Plus className="mr-2 h-4 w-4" />
-            {t.editor.addQuestion}
-          </Button>
         </div>
         <div className="space-y-4">
           {questions.map((q, qi) => {
