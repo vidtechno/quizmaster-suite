@@ -384,6 +384,12 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, testCod
             );
           })}
         </div>
+        <div className="mt-4 flex justify-center">
+          <Button variant="outline" onClick={addQ} className="rounded-full">
+            <Plus className="mr-2 h-4 w-4" />
+            {t.editor.addQuestion}
+          </Button>
+        </div>
       </section>
 
       <div className="sticky bottom-4 z-10 flex justify-end">
