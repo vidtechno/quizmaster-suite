@@ -394,6 +394,14 @@ export const t = {
     subsetTag: (n: number, total: number) => `${n} / ${total} savol`,
     badgeMin: (n: number) => `${n} daqiqa`,
     testCodeBadge: (code: string) => `Test kodi: ${code}`,
+    attachToMyGroup: "Mening guruhimga ulash",
+    attachPickGroup: "Qaysi guruhga ulamoqchisiz?",
+    attachNoGroups: "Sizda guruh yo'q. Avval guruh yarating.",
+    attachOk: "Test guruhga ulandi!",
+    attachAlready: "Bu test allaqachon ulangan",
+    attachFail: "Ulashda xatolik yuz berdi",
+    loginToAttach: "Ulash uchun tizimga kiring",
+    creatorBadge: "Sizning testingiz",
   },
 
   // ---- Profile page ----
