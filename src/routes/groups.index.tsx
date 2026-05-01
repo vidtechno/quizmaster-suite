@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { t } from "@/lib/i18n";
 import { HelpHint } from "@/components/HelpHint";
 
-export const Route = createFileRoute("/groups")({
+export const Route = createFileRoute("/groups/")({
   head: () => ({ meta: [{ title: t.groups.metaTitle }] }),
   component: GroupsPage,
 });
