@@ -15,7 +15,7 @@ import { Clock, Trophy, Shuffle, ArrowRight, CheckCircle2, XCircle, Hash, LinkIc
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
 
-export const Route = createFileRoute("/quiz/$id")({
+export const Route = createFileRoute("/quiz/$id/")({
   head: () => ({ meta: [{ title: t.player.metaTitle }] }),
   component: QuizPage,
 });
