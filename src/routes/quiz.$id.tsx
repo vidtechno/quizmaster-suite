@@ -66,6 +66,11 @@ function QuizPage() {
   const [accessError, setAccessError] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState<{ score: number; total: number; time: number } | null>(null);
 
+  // Attach-to-group dialog state
+  const [attachOpen, setAttachOpen] = useState(false);
+  const [myGroups, setMyGroups] = useState<Array<{ id: string; name: string }>>([]);
+  const [attachingGroupId, setAttachingGroupId] = useState<string | null>(null);
+
   // running state
   const [runQuestions, setRunQuestions] = useState<
     Array<Question & { _displayOptions: { text: string; originalIndex: number }[] }>
@@ -81,7 +86,8 @@ function QuizPage() {
         const { data: tt, error } = await supabase.from("tests").select("*").eq("id", id).maybeSingle();
         if (error || !tt) {
           toast.error(t.player.notFound);
-          return navigate({ to: "/dashboard" });
+          setLoading(false);
+          return;
         }
         setTest(tt as unknown as Test);
 
