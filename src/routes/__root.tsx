@@ -33,8 +33,16 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Quizly — Smarter tests, better learning" },
-      { name: "description", content: "Create, share, and take quizzes with real-time leaderboards and deep analytics." },
+      { title: "Megapanel.uz — Zamonaviy test yaratish platformasi" },
+      { name: "description", content: "Testlar yarating, ulashing va real vaqt rejimidagi yetakchilar jadvali hamda chuqur tahlillar bilan sinovdan o'ting." },
+      { property: "og:title", content: "Megapanel.uz — Zamonaviy test yaratish platformasi" },
+      { name: "twitter:title", content: "Megapanel.uz — Zamonaviy test yaratish platformasi" },
+      { property: "og:description", content: "Testlar yarating, ulashing va real vaqt rejimidagi yetakchilar jadvali hamda chuqur tahlillar bilan sinovdan o'ting." },
+      { name: "twitter:description", content: "Testlar yarating, ulashing va real vaqt rejimidagi yetakchilar jadvali hamda chuqur tahlillar bilan sinovdan o'ting." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/pqWrbhHSC3dcaf3yAgBEcqXEdLK2/social-images/social-1777631260454-Gemini_Generated_Image_rzsmqorzsmqorzsm.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/pqWrbhHSC3dcaf3yAgBEcqXEdLK2/social-images/social-1777631260454-Gemini_Generated_Image_rzsmqorzsmqorzsm.webp" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:type", content: "website" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
