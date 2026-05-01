@@ -3,7 +3,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Clock, Trophy, Shuffle, ArrowRight, CheckCircle2, XCircle, Hash } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Clock, Trophy, Shuffle, ArrowRight, CheckCircle2, XCircle, Hash, LinkIcon, Users } from "lucide-react";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
 
