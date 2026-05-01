@@ -228,6 +228,48 @@ function QuizPage() {
     }
   }
 
+  async function openAttachDialog() {
+    if (!user) {
+      toast.error(t.player.loginToAttach);
+      return navigate({ to: "/login" });
+    }
+    const { data, error } = await supabase
+      .from("groups")
+      .select("id, name")
+      .eq("creator_id", user.id)
+      .order("created_at", { ascending: false });
+    if (error) {
+      toast.error(t.err.network);
+      return;
+    }
+    setMyGroups((data ?? []) as Array<{ id: string; name: string }>);
+    setAttachOpen(true);
+  }
+
+  async function attachToGroup(groupId: string) {
+    if (!test) return;
+    setAttachingGroupId(groupId);
+    try {
+      const { data, error } = await supabase.rpc("attach_test_to_group", {
+        _test_code: test.test_code,
+        _group_id: groupId,
+      });
+      if (error) {
+        toast.error(t.player.attachFail);
+        return;
+      }
+      const r = data as { ok: boolean; error?: string; already?: boolean };
+      if (!r?.ok) {
+        toast.error(r?.error === "not_group_owner" ? t.groups.attachNotOwner : t.player.attachFail);
+        return;
+      }
+      toast.success(r.already ? t.player.attachAlready : t.player.attachOk);
+      setAttachOpen(false);
+    } finally {
+      setAttachingGroupId(null);
+    }
+  }
+
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
   const progress = useMemo(
