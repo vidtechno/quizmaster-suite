@@ -341,23 +341,75 @@ function QuizPage() {
               {noAccessMsg}
             </div>
           )}
+          {noAccessMsg && (
+            <div className="mt-6 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+              {noAccessMsg}
+            </div>
+          )}
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button size="lg" onClick={startAttempt} disabled={!canTake}>
-              {canTake ? (
-                <>
-                  {t.player.start} <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              ) : (
-                t.player.noAttempts
-              )}
-            </Button>
+            {canTake && (
+              <Button size="lg" onClick={startAttempt}>
+                {t.player.start} <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            )}
+            {!isCreator && (
+              <Button size="lg" variant="secondary" onClick={openAttachDialog}>
+                <LinkIcon className="mr-2 h-4 w-4" />
+                {t.player.attachToMyGroup}
+              </Button>
+            )}
+            {isCreator && (
+              <Link to="/quiz/$id/edit" params={{ id: test.id }}>
+                <Button size="lg" variant="outline">{t.edit}</Button>
+              </Link>
+            )}
             <Link to="/dashboard">
-              <Button size="lg" variant="outline">
+              <Button size="lg" variant="ghost">
                 {t.player.backToDashboard}
               </Button>
             </Link>
           </div>
         </div>
+
+        {/* Attach to group dialog */}
+        <Dialog open={attachOpen} onOpenChange={setAttachOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>{t.player.attachToMyGroup}</DialogTitle>
+              <DialogDescription>{t.player.attachPickGroup}</DialogDescription>
+            </DialogHeader>
+            {myGroups.length === 0 ? (
+              <div className="rounded-xl border bg-muted/30 p-4 text-center text-sm text-muted-foreground">
+                <Users className="mx-auto mb-2 h-6 w-6" />
+                {t.player.attachNoGroups}
+              </div>
+            ) : (
+              <div className="max-h-80 space-y-2 overflow-y-auto">
+                {myGroups.map((g) => (
+                  <button
+                    key={g.id}
+                    onClick={() => attachToGroup(g.id)}
+                    disabled={attachingGroupId !== null}
+                    className="flex w-full items-center justify-between gap-3 rounded-xl border p-3 text-left transition hover:border-primary/50 hover:bg-primary/5 disabled:opacity-60"
+                  >
+                    <span className="truncate font-medium">{g.name}</span>
+                    <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  </button>
+                ))}
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setAttachOpen(false)}>
+                {t.cancel}
+              </Button>
+              {myGroups.length === 0 && (
+                <Link to="/groups">
+                  <Button>{t.groups.newGroup}</Button>
+                </Link>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
