@@ -4,6 +4,7 @@ import { AuthProvider } from "@/lib/auth";
 import { ThemeProvider } from "@/lib/theme";
 import { AuthModalProvider } from "@/components/AuthModal";
 import { Navbar } from "@/components/Navbar";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { t } from "@/lib/i18n";
 
 import appCss from "../styles.css?url";
@@ -88,6 +89,7 @@ function RootComponent() {
             <main className="flex-1">
               <Outlet />
             </main>
+            <MobileBottomNav />
           </div>
           <Toaster richColors closeButton position="top-right" />
         </AuthModalProvider>

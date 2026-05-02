@@ -2,14 +2,16 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import { useAuthModal } from "@/components/AuthModal";
+import { useIsAdmin } from "@/hooks/use-admin";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, Sparkles, LayoutDashboard, Users, User } from "lucide-react";
+import { Moon, Sun, Sparkles, LayoutDashboard, Users, User, Shield } from "lucide-react";
 import { t } from "@/lib/i18n";
 
 export function Navbar() {
   const { user, profile, signOut } = useAuth();
   const { theme, toggle } = useTheme();
   const { open: openAuthModal } = useAuthModal();
+  const { isAdmin } = useIsAdmin();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -35,6 +37,7 @@ export function Navbar() {
               <NavItem to="/dashboard" icon={LayoutDashboard} label={t.nav.dashboard} />
               <NavItem to="/groups" icon={Users} label={t.dashboard.tabGroups} hideOnMobile />
               <NavItem to="/profile" icon={User} label={t.nav.profile} hideOnMobile />
+              {isAdmin && <NavItem to="/admin" icon={Shield} label="Admin" />}
               <Button variant="ghost" size="icon" onClick={toggle} aria-label={t.nav.toggleTheme} className="rounded-full">
                 {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
@@ -67,7 +70,7 @@ function NavItem({
   label,
   hideOnMobile,
 }: {
-  to: "/dashboard" | "/groups" | "/profile";
+  to: "/dashboard" | "/groups" | "/profile" | "/admin";
   icon: React.ElementType;
   label: string;
   hideOnMobile?: boolean;

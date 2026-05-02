@@ -331,6 +331,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       profiles_public: {
@@ -362,6 +383,58 @@ export type Database = {
       }
     }
     Functions: {
+      admin_delete_group: { Args: { _group_id: string }; Returns: Json }
+      admin_delete_test: { Args: { _test_id: string }; Returns: Json }
+      admin_delete_user: { Args: { _user_id: string }; Returns: Json }
+      admin_list_groups: {
+        Args: { _limit?: number; _q: string }
+        Returns: {
+          access_code: string
+          created_at: string
+          creator_id: string
+          creator_name: string
+          id: string
+          member_count: number
+          name: string
+          test_count: number
+        }[]
+      }
+      admin_list_tests: {
+        Args: { _limit?: number; _q: string }
+        Returns: {
+          attempt_count: number
+          created_at: string
+          creator_id: string
+          creator_name: string
+          id: string
+          question_count: number
+          test_code: string
+          title: string
+        }[]
+      }
+      admin_recent_activity: {
+        Args: { _limit?: number }
+        Returns: {
+          at: string
+          kind: string
+          subtitle: string
+          title: string
+        }[]
+      }
+      admin_search_users: {
+        Args: { _limit?: number; _q: string }
+        Returns: {
+          attempt_count: number
+          created_at: string
+          full_name: string
+          id: string
+          is_admin: boolean
+          phone: string
+          test_count: number
+          username: string
+        }[]
+      }
+      admin_toggle_admin: { Args: { _user_id: string }; Returns: Json }
       attach_test_to_group: {
         Args: { _group_id: string; _test_code: string }
         Returns: Json
@@ -377,6 +450,7 @@ export type Database = {
       gen_code6: { Args: never; Returns: string }
       gen_unique_group_code: { Args: never; Returns: string }
       gen_unique_test_code: { Args: never; Returns: string }
+      get_admin_stats: { Args: never; Returns: Json }
       get_group_leaderboard: {
         Args: { _group_id: string; _limit?: number; _test_id: string }
         Returns: {
@@ -405,6 +479,14 @@ export type Database = {
           username: string
         }[]
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_group_creator: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
@@ -428,7 +510,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -555,6 +637,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
