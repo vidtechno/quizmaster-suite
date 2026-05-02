@@ -2,8 +2,9 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import { useAuthModal } from "@/components/AuthModal";
+import { useIsAdmin } from "@/hooks/use-admin";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, Sparkles, LayoutDashboard, Users, User } from "lucide-react";
+import { Moon, Sun, Sparkles, LayoutDashboard, Users, User, Shield } from "lucide-react";
 import { t } from "@/lib/i18n";
 
 export function Navbar() {
