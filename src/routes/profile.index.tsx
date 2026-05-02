@@ -9,7 +9,7 @@ import { CheckCircle2, XCircle, ArrowLeft, Trophy, Clock, Calendar, Sparkles, Pe
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
 
-export const Route = createFileRoute("/profile")({
+export const Route = createFileRoute("/profile/")({
   head: () => ({ meta: [{ title: t.profile.metaTitle }] }),
   component: ProfilePage,
 });

@@ -10,11 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
-import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as GroupsRouteImport } from './routes/groups'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProfileIndexRouteImport } from './routes/profile.index'
 import { Route as GroupsIndexRouteImport } from './routes/groups.index'
 import { Route as QuizNewRouteImport } from './routes/quiz.new'
 import { Route as QuizIdRouteImport } from './routes/quiz.$id'
@@ -26,11 +26,6 @@ import { Route as QuizIdEditRouteImport } from './routes/quiz.$id.edit'
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -51,6 +46,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileIndexRoute = ProfileIndexRouteImport.update({
+  id: '/profile/',
+  path: '/profile/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GroupsIndexRoute = GroupsIndexRouteImport.update({
@@ -94,13 +94,13 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/groups': typeof GroupsRouteWithChildren
   '/login': typeof LoginRoute
-  '/profile': typeof ProfileRouteWithChildren
   '/signup': typeof SignupRoute
   '/groups/$id': typeof GroupsIdRoute
   '/profile/edit': typeof ProfileEditRoute
   '/quiz/$id': typeof QuizIdRouteWithChildren
   '/quiz/new': typeof QuizNewRoute
   '/groups/': typeof GroupsIndexRoute
+  '/profile/': typeof ProfileIndexRoute
   '/quiz/$id/edit': typeof QuizIdEditRoute
   '/quiz/$id/': typeof QuizIdIndexRoute
 }
@@ -108,12 +108,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
-  '/profile': typeof ProfileRouteWithChildren
   '/signup': typeof SignupRoute
   '/groups/$id': typeof GroupsIdRoute
   '/profile/edit': typeof ProfileEditRoute
   '/quiz/new': typeof QuizNewRoute
   '/groups': typeof GroupsIndexRoute
+  '/profile': typeof ProfileIndexRoute
   '/quiz/$id/edit': typeof QuizIdEditRoute
   '/quiz/$id': typeof QuizIdIndexRoute
 }
@@ -123,13 +123,13 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/groups': typeof GroupsRouteWithChildren
   '/login': typeof LoginRoute
-  '/profile': typeof ProfileRouteWithChildren
   '/signup': typeof SignupRoute
   '/groups/$id': typeof GroupsIdRoute
   '/profile/edit': typeof ProfileEditRoute
   '/quiz/$id': typeof QuizIdRouteWithChildren
   '/quiz/new': typeof QuizNewRoute
   '/groups/': typeof GroupsIndexRoute
+  '/profile/': typeof ProfileIndexRoute
   '/quiz/$id/edit': typeof QuizIdEditRoute
   '/quiz/$id/': typeof QuizIdIndexRoute
 }
@@ -140,13 +140,13 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/groups'
     | '/login'
-    | '/profile'
     | '/signup'
     | '/groups/$id'
     | '/profile/edit'
     | '/quiz/$id'
     | '/quiz/new'
     | '/groups/'
+    | '/profile/'
     | '/quiz/$id/edit'
     | '/quiz/$id/'
   fileRoutesByTo: FileRoutesByTo
@@ -154,12 +154,12 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
-    | '/profile'
     | '/signup'
     | '/groups/$id'
     | '/profile/edit'
     | '/quiz/new'
     | '/groups'
+    | '/profile'
     | '/quiz/$id/edit'
     | '/quiz/$id'
   id:
@@ -168,13 +168,13 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/groups'
     | '/login'
-    | '/profile'
     | '/signup'
     | '/groups/$id'
     | '/profile/edit'
     | '/quiz/$id'
     | '/quiz/new'
     | '/groups/'
+    | '/profile/'
     | '/quiz/$id/edit'
     | '/quiz/$id/'
   fileRoutesById: FileRoutesById
@@ -184,10 +184,10 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   GroupsRoute: typeof GroupsRouteWithChildren
   LoginRoute: typeof LoginRoute
-  ProfileRoute: typeof ProfileRouteWithChildren
   SignupRoute: typeof SignupRoute
   QuizIdRoute: typeof QuizIdRouteWithChildren
   QuizNewRoute: typeof QuizNewRoute
+  ProfileIndexRoute: typeof ProfileIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -197,13 +197,6 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -232,6 +225,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/': {
+      id: '/profile/'
+      path: '/profile'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof ProfileIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/groups/': {
@@ -299,17 +299,6 @@ const GroupsRouteChildren: GroupsRouteChildren = {
 const GroupsRouteWithChildren =
   GroupsRoute._addFileChildren(GroupsRouteChildren)
 
-interface ProfileRouteChildren {
-  ProfileEditRoute: typeof ProfileEditRoute
-}
-
-const ProfileRouteChildren: ProfileRouteChildren = {
-  ProfileEditRoute: ProfileEditRoute,
-}
-
-const ProfileRouteWithChildren =
-  ProfileRoute._addFileChildren(ProfileRouteChildren)
-
 interface QuizIdRouteChildren {
   QuizIdEditRoute: typeof QuizIdEditRoute
   QuizIdIndexRoute: typeof QuizIdIndexRoute
@@ -328,10 +317,10 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   GroupsRoute: GroupsRouteWithChildren,
   LoginRoute: LoginRoute,
-  ProfileRoute: ProfileRouteWithChildren,
   SignupRoute: SignupRoute,
   QuizIdRoute: QuizIdRouteWithChildren,
   QuizNewRoute: QuizNewRoute,
+  ProfileIndexRoute: ProfileIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
