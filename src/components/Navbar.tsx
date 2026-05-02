@@ -11,6 +11,7 @@ export function Navbar() {
   const { user, profile, signOut } = useAuth();
   const { theme, toggle } = useTheme();
   const { open: openAuthModal } = useAuthModal();
+  const { isAdmin } = useIsAdmin();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
