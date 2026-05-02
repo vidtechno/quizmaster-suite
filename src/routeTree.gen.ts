@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as GroupsRouteImport } from './routes/groups'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -26,6 +27,11 @@ import { Route as QuizIdEditRouteImport } from './routes/quiz.$id.edit'
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -49,9 +55,9 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileIndexRoute = ProfileIndexRouteImport.update({
-  id: '/profile/',
-  path: '/profile/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProfileRoute,
 } as any)
 const GroupsIndexRoute = GroupsIndexRouteImport.update({
   id: '/',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/groups': typeof GroupsRouteWithChildren
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/signup': typeof SignupRoute
   '/groups/$id': typeof GroupsIdRoute
   '/profile/edit': typeof ProfileEditRoute
@@ -123,6 +130,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/groups': typeof GroupsRouteWithChildren
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/signup': typeof SignupRoute
   '/groups/$id': typeof GroupsIdRoute
   '/profile/edit': typeof ProfileEditRoute
@@ -140,6 +148,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/groups'
     | '/login'
+    | '/profile'
     | '/signup'
     | '/groups/$id'
     | '/profile/edit'
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/groups'
     | '/login'
+    | '/profile'
     | '/signup'
     | '/groups/$id'
     | '/profile/edit'
@@ -184,10 +194,10 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   GroupsRoute: typeof GroupsRouteWithChildren
   LoginRoute: typeof LoginRoute
+  ProfileRoute: typeof ProfileRouteWithChildren
   SignupRoute: typeof SignupRoute
   QuizIdRoute: typeof QuizIdRouteWithChildren
   QuizNewRoute: typeof QuizNewRoute
-  ProfileIndexRoute: typeof ProfileIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -197,6 +207,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -229,10 +246,10 @@ declare module '@tanstack/react-router' {
     }
     '/profile/': {
       id: '/profile/'
-      path: '/profile'
+      path: '/'
       fullPath: '/profile/'
       preLoaderRoute: typeof ProfileIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ProfileRoute
     }
     '/groups/': {
       id: '/groups/'
@@ -299,6 +316,19 @@ const GroupsRouteChildren: GroupsRouteChildren = {
 const GroupsRouteWithChildren =
   GroupsRoute._addFileChildren(GroupsRouteChildren)
 
+interface ProfileRouteChildren {
+  ProfileEditRoute: typeof ProfileEditRoute
+  ProfileIndexRoute: typeof ProfileIndexRoute
+}
+
+const ProfileRouteChildren: ProfileRouteChildren = {
+  ProfileEditRoute: ProfileEditRoute,
+  ProfileIndexRoute: ProfileIndexRoute,
+}
+
+const ProfileRouteWithChildren =
+  ProfileRoute._addFileChildren(ProfileRouteChildren)
+
 interface QuizIdRouteChildren {
   QuizIdEditRoute: typeof QuizIdEditRoute
   QuizIdIndexRoute: typeof QuizIdIndexRoute
@@ -317,10 +347,10 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   GroupsRoute: GroupsRouteWithChildren,
   LoginRoute: LoginRoute,
+  ProfileRoute: ProfileRouteWithChildren,
   SignupRoute: SignupRoute,
   QuizIdRoute: QuizIdRouteWithChildren,
   QuizNewRoute: QuizNewRoute,
-  ProfileIndexRoute: ProfileIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
