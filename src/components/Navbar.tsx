@@ -37,6 +37,7 @@ export function Navbar() {
               <NavItem to="/dashboard" icon={LayoutDashboard} label={t.nav.dashboard} />
               <NavItem to="/groups" icon={Users} label={t.dashboard.tabGroups} hideOnMobile />
               <NavItem to="/profile" icon={User} label={t.nav.profile} hideOnMobile />
+              {isAdmin && <NavItem to="/admin" icon={Shield} label="Admin" />}
               <Button variant="ghost" size="icon" onClick={toggle} aria-label={t.nav.toggleTheme} className="rounded-full">
                 {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
