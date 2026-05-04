@@ -14,6 +14,8 @@ import {
 import { Clock, Trophy, Shuffle, ArrowRight, CheckCircle2, XCircle, Hash, LinkIcon, Users } from "lucide-react";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
+import { TestReviews } from "@/components/TestReviews";
+import { ExportResultsButtons } from "@/components/ExportResultsButtons";
 
 export const Route = createFileRoute("/quiz/$id/")({
   head: () => ({ meta: [{ title: t.player.metaTitle }] }),
