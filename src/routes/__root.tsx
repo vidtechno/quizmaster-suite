@@ -5,6 +5,9 @@ import { ThemeProvider } from "@/lib/theme";
 import { AuthModalProvider } from "@/components/AuthModal";
 import { Navbar } from "@/components/Navbar";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { MobileTopBar } from "@/components/MobileTopBar";
+import { LocaleProvider } from "@/lib/locale";
+import { GlobalSearchProvider } from "@/components/GlobalSearch";
 import { t } from "@/lib/i18n";
 
 import appCss from "../styles.css?url";
