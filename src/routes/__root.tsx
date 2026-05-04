@@ -85,18 +85,23 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <AuthModalProvider>
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-1">
-              <Outlet />
-            </main>
-            <MobileBottomNav />
-          </div>
-          <Toaster richColors closeButton position="top-right" />
-        </AuthModalProvider>
-      </AuthProvider>
+      <LocaleProvider>
+        <AuthProvider>
+          <AuthModalProvider>
+            <GlobalSearchProvider>
+              <div className="min-h-screen flex flex-col">
+                <Navbar />
+                <MobileTopBar />
+                <main className="flex-1">
+                  <Outlet />
+                </main>
+                <MobileBottomNav />
+              </div>
+              <Toaster richColors closeButton position="top-right" />
+            </GlobalSearchProvider>
+          </AuthModalProvider>
+        </AuthProvider>
+      </LocaleProvider>
     </ThemeProvider>
   );
 }
