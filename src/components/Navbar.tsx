@@ -4,7 +4,9 @@ import { useTheme } from "@/lib/theme";
 import { useAuthModal } from "@/components/AuthModal";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, Sparkles, LayoutDashboard, Users, User, Shield } from "lucide-react";
+import { Moon, Sun, Sparkles, LayoutDashboard, Users, User, Shield, Trophy, Search } from "lucide-react";
+import { useGlobalSearch } from "@/components/GlobalSearch";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { t } from "@/lib/i18n";
 
 export function Navbar() {
@@ -12,6 +14,7 @@ export function Navbar() {
   const { theme, toggle } = useTheme();
   const { open: openAuthModal } = useAuthModal();
   const { isAdmin } = useIsAdmin();
+  const { open: openSearch } = useGlobalSearch();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -23,7 +26,7 @@ export function Navbar() {
   const logoHref = user ? "/dashboard" : "/";
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+    <header className={`sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 ${user ? "hidden sm:block" : ""}`}>
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4">
         <Link to={logoHref} className="group flex items-center gap-2.5">
           <span className="relative flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-hero text-primary-foreground shadow-glow transition-transform group-hover:scale-105">
@@ -36,8 +39,13 @@ export function Navbar() {
             <>
               <NavItem to="/dashboard" icon={LayoutDashboard} label={t.nav.dashboard} />
               <NavItem to="/groups" icon={Users} label={t.dashboard.tabGroups} hideOnMobile />
+              <NavItem to="/leaderboard" icon={Trophy} label="Reyting" hideOnMobile />
               <NavItem to="/profile" icon={User} label={t.nav.profile} hideOnMobile />
               {isAdmin && <NavItem to="/admin" icon={Shield} label="Admin" />}
+              <Button variant="ghost" size="icon" onClick={openSearch} aria-label="Qidirish" className="rounded-full">
+                <Search className="h-4 w-4" />
+              </Button>
+              <LanguageSwitcher compact />
               <Button variant="ghost" size="icon" onClick={toggle} aria-label={t.nav.toggleTheme} className="rounded-full">
                 {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
@@ -70,7 +78,7 @@ function NavItem({
   label,
   hideOnMobile,
 }: {
-  to: "/dashboard" | "/groups" | "/profile" | "/admin";
+  to: "/dashboard" | "/groups" | "/profile" | "/admin" | "/leaderboard";
   icon: React.ElementType;
   label: string;
   hideOnMobile?: boolean;

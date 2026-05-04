@@ -14,6 +14,8 @@ import {
 import { Clock, Trophy, Shuffle, ArrowRight, CheckCircle2, XCircle, Hash, LinkIcon, Users } from "lucide-react";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
+import { TestReviews } from "@/components/TestReviews";
+import { ExportResultsButtons } from "@/components/ExportResultsButtons";
 
 export const Route = createFileRoute("/quiz/$id/")({
   head: () => ({ meta: [{ title: t.player.metaTitle }] }),
@@ -410,6 +412,17 @@ function QuizPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {isCreator && (
+          <div className="mt-8">
+            <h3 className="mb-3 font-display text-xl font-semibold">Natijalarni eksport qilish</h3>
+            <ExportResultsButtons testId={test.id} testTitle={test.title} />
+          </div>
+        )}
+
+        <div className="mt-10">
+          <TestReviews testId={test.id} />
+        </div>
       </div>
     );
   }
