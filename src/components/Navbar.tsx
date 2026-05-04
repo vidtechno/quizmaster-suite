@@ -4,7 +4,9 @@ import { useTheme } from "@/lib/theme";
 import { useAuthModal } from "@/components/AuthModal";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, Sparkles, LayoutDashboard, Users, User, Shield } from "lucide-react";
+import { Moon, Sun, Sparkles, LayoutDashboard, Users, User, Shield, Trophy, Search } from "lucide-react";
+import { useGlobalSearch } from "@/components/GlobalSearch";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { t } from "@/lib/i18n";
 
 export function Navbar() {
