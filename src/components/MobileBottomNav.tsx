@@ -11,8 +11,9 @@ export function MobileBottomNav() {
   if (!user) return null;
 
   const items: { to: any; label: string; icon: any; match: (p: string) => boolean }[] = [
-    { to: "/dashboard", label: "Boshqaruv", icon: LayoutDashboard, match: (p) => p === "/dashboard" || p === "/" },
+    { to: "/dashboard", label: "Asosiy", icon: LayoutDashboard, match: (p) => p === "/dashboard" || p === "/" },
     { to: "/groups", label: "Guruhlar", icon: Users, match: (p) => p.startsWith("/groups") },
+    { to: "/leaderboard", label: "Reyting", icon: Trophy, match: (p) => p.startsWith("/leaderboard") },
     { to: "/profile", label: "Profil", icon: User, match: (p) => p.startsWith("/profile") },
   ];
   if (isAdmin) {
