@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
+import { GroupFeatures } from "@/components/GroupFeatures";
 
 export const Route = createFileRoute("/groups/$id")({
   head: () => ({ meta: [{ title: t.groups.metaTitle }] }),
