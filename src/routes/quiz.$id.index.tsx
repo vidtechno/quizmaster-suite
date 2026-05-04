@@ -410,6 +410,17 @@ function QuizPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {isCreator && (
+          <div className="mt-8">
+            <h3 className="mb-3 font-display text-xl font-semibold">Natijalarni eksport qilish</h3>
+            <ExportResultsButtons testId={test.id} testTitle={test.title} />
+          </div>
+        )}
+
+        <div className="mt-10">
+          <TestReviews testId={test.id} />
+        </div>
       </div>
     );
   }
