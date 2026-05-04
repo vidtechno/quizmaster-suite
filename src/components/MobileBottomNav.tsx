@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, User, Shield } from "lucide-react";
+import { LayoutDashboard, Users, User, Shield, Trophy } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useIsAdmin } from "@/hooks/use-admin";
 
