@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      group_announcements: {
+        Row: {
+          body: string
+          created_at: string
+          creator_id: string
+          group_id: string
+          id: string
+          title: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          creator_id: string
+          group_id: string
+          id?: string
+          title: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          creator_id?: string
+          group_id?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       group_members: {
         Row: {
           attempts_limit: number
@@ -48,6 +75,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      group_messages: {
+        Row: {
+          content: string
+          created_at: string
+          group_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          group_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          group_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       groups: {
         Row: {
@@ -289,6 +340,33 @@ export type Database = {
           },
         ]
       }
+      test_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          test_id: string
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          test_id: string
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          test_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tests: {
         Row: {
           created_at: string
@@ -451,6 +529,18 @@ export type Database = {
       gen_unique_group_code: { Args: never; Returns: string }
       gen_unique_test_code: { Args: never; Returns: string }
       get_admin_stats: { Args: never; Returns: Json }
+      get_global_leaderboard: {
+        Args: { _limit?: number }
+        Returns: {
+          avatar_url: string
+          avg_pct: number
+          completed_count: number
+          full_name: string
+          total_score: number
+          user_id: string
+          username: string
+        }[]
+      }
       get_group_leaderboard: {
         Args: { _group_id: string; _limit?: number; _test_id: string }
         Returns: {
@@ -479,6 +569,8 @@ export type Database = {
           username: string
         }[]
       }
+      get_group_stats: { Args: { _group_id: string }; Returns: Json }
+      get_test_review_summary: { Args: { _test_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
