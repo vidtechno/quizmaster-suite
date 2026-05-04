@@ -78,7 +78,7 @@ function NavItem({
   label,
   hideOnMobile,
 }: {
-  to: "/dashboard" | "/groups" | "/profile" | "/admin";
+  to: "/dashboard" | "/groups" | "/profile" | "/admin" | "/leaderboard";
   icon: React.ElementType;
   label: string;
   hideOnMobile?: boolean;
