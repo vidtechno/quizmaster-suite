@@ -14,6 +14,7 @@ export function Navbar() {
   const { theme, toggle } = useTheme();
   const { open: openAuthModal } = useAuthModal();
   const { isAdmin } = useIsAdmin();
+  const { open: openSearch } = useGlobalSearch();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
