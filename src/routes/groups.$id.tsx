@@ -904,6 +904,8 @@ function GroupDetailPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <GroupFeatures groupId={id} isCreator={isCreator} />
     </div>
   );
 }
