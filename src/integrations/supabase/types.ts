@@ -41,6 +41,75 @@ export type Database = {
         }
         Relationships: []
       }
+      group_assignments: {
+        Row: {
+          created_at: string
+          creator_id: string
+          description: string | null
+          due_at: string | null
+          group_id: string
+          id: string
+          test_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          due_at?: string | null
+          group_id: string
+          id?: string
+          test_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          due_at?: string | null
+          group_id?: string
+          id?: string
+          test_id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      group_files: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          mime: string | null
+          name: string
+          size_bytes: number | null
+          storage_path: string | null
+          uploader_id: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          mime?: string | null
+          name: string
+          size_bytes?: number | null
+          storage_path?: string | null
+          uploader_id: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          mime?: string | null
+          name?: string
+          size_bytes?: number | null
+          storage_path?: string | null
+          uploader_id?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
       group_members: {
         Row: {
           attempts_limit: number
@@ -175,6 +244,7 @@ export type Database = {
           position: number
           question_text: string
           test_id: string
+          time_seconds: number | null
         }
         Insert: {
           attempts_count?: number
@@ -187,6 +257,7 @@ export type Database = {
           position?: number
           question_text: string
           test_id: string
+          time_seconds?: number | null
         }
         Update: {
           attempts_count?: number
@@ -199,6 +270,7 @@ export type Database = {
           position?: number
           question_text?: string
           test_id?: string
+          time_seconds?: number | null
         }
         Relationships: [
           {
@@ -595,6 +667,10 @@ export type Database = {
       recompute_question_stats: {
         Args: { _test_id: string }
         Returns: undefined
+      }
+      user_can_access_group_folder: {
+        Args: { _path: string; _uid: string }
+        Returns: boolean
       }
       user_can_view_test: {
         Args: { _test_id: string; _user_id: string }
