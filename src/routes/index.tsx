@@ -2,7 +2,25 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useAuthModal } from "@/components/AuthModal";
 import { useAuth } from "@/lib/auth";
-import { ArrowRight, Brain, Trophy, Shuffle, Lock, BarChart3, Users } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  ArrowRight,
+  Brain,
+  Trophy,
+  Shuffle,
+  Lock,
+  BarChart3,
+  Users,
+  GraduationCap,
+  BookOpen,
+  Building2,
+  UserCheck,
+} from "lucide-react";
 import { t } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
@@ -90,6 +108,63 @@ function Landing() {
               </div>
             );
           })}
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="border-t bg-muted/30">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
+          <div className="mb-12 max-w-2xl">
+            <h2 className="font-display text-3xl font-semibold sm:text-4xl">{t.landing.howTitle}</h2>
+            <p className="mt-3 text-muted-foreground">{t.landing.howSub}</p>
+          </div>
+          <ol className="grid gap-6 sm:grid-cols-3">
+            {t.landing.steps.map((s, i) => (
+              <li key={s.title} className="relative rounded-2xl border bg-card p-6 shadow-card">
+                <span className="absolute -top-4 left-6 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-hero text-sm font-bold text-primary-foreground shadow-glow">
+                  {i + 1}
+                </span>
+                <h3 className="mt-2 font-display text-lg font-semibold">{s.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* For who */}
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
+        <div className="mb-12 max-w-2xl">
+          <h2 className="font-display text-3xl font-semibold sm:text-4xl">{t.landing.forTitle}</h2>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {t.landing.forItems.map((it, i) => {
+            const Icon = [GraduationCap, UserCheck, BookOpen, Building2][i] ?? Users;
+            return (
+              <div key={it.title} className="rounded-2xl border bg-card p-5 shadow-card">
+                <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-accent/15 text-accent">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="font-display text-base font-semibold">{it.title}</h3>
+                <p className="mt-1.5 text-sm text-muted-foreground">{it.desc}</p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="border-t bg-muted/30">
+        <div className="mx-auto max-w-3xl px-4 py-16 sm:py-20">
+          <h2 className="mb-8 font-display text-3xl font-semibold sm:text-4xl">{t.landing.faqTitle}</h2>
+          <Accordion type="single" collapsible className="rounded-2xl border bg-card shadow-card">
+            {t.landing.faq.map((f, i) => (
+              <AccordionItem key={i} value={`q-${i}`} className="px-5">
+                <AccordionTrigger className="text-left text-base font-semibold">{f.q}</AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground">{f.a}</AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       </section>
 

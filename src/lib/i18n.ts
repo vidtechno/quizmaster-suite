@@ -14,14 +14,34 @@ function readInitialLang(): Lang {
   return "uz";
 }
 
-export let currentLang: Lang = readInitialLang();
+// IMPORTANT: SSR and the FIRST client render must agree, otherwise React
+// throws hydration error #418. So `currentLang` starts as "uz" everywhere
+// and only switches AFTER mount (see LangBoot in __root.tsx) — which then
+// re-keys the React tree to re-render with the new dictionary.
+export let currentLang: Lang = "uz";
+
+const listeners = new Set<() => void>();
+export function subscribeLang(fn: () => void): () => void {
+  listeners.add(fn);
+  return () => {
+    listeners.delete(fn);
+  };
+}
+
+export function readStoredLang(): Lang {
+  return readInitialLang();
+}
 
 export function setActiveLang(l: Lang) {
   try {
     window.localStorage.setItem("lang", l);
   } catch {}
+  if (currentLang === l) return;
   currentLang = l;
-  if (typeof window !== "undefined") window.location.reload();
+  if (typeof document !== "undefined") {
+    document.documentElement.lang = l;
+  }
+  listeners.forEach((fn) => fn());
 }
 
 // ============================================================

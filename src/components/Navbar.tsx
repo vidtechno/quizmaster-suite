@@ -28,36 +28,35 @@ export function Navbar() {
   return (
     <header className={`sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 ${user ? "hidden sm:block" : ""}`}>
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4">
-        <Link to={logoHref} className="group flex items-center gap-2.5">
+        <Link to={logoHref} className="group flex items-center gap-2.5 shrink-0">
           <span className="relative flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-hero text-primary-foreground shadow-glow transition-transform group-hover:scale-105">
             <Sparkles className="h-4.5 w-4.5" strokeWidth={2.5} />
           </span>
-          <span className="font-display text-xl font-bold tracking-tight">{t.brand}</span>
+          <span className="font-display text-lg font-bold tracking-tight lg:text-xl">{t.brand}</span>
         </Link>
-        <nav className="flex items-center gap-0.5 sm:gap-1">
+        <nav className="flex items-center gap-0.5 min-w-0">
           {user ? (
             <>
               <NavItem to="/dashboard" icon={LayoutDashboard} label={t.nav.dashboard} />
-              <NavItem to="/groups" icon={Users} label={t.dashboard.tabGroups} hideOnMobile />
-              <NavItem to="/leaderboard" icon={Trophy} label="Reyting" hideOnMobile />
-              <NavItem to="/profile" icon={User} label={t.nav.profile} hideOnMobile />
-              {isAdmin && <NavItem to="/admin" icon={Shield} label="Admin" />}
-              <Button variant="ghost" size="icon" onClick={openSearch} aria-label="Qidirish" className="rounded-full">
+              <NavItem to="/groups" icon={Users} label={t.nav.groups} />
+              <NavItem to="/leaderboard" icon={Trophy} label={t.nav.leaderboard} />
+              <NavItem to="/profile" icon={User} label={t.nav.profile} />
+              {isAdmin && <NavItem to="/admin" icon={Shield} label={t.nav.admin} />}
+              <span className="mx-1 h-6 w-px bg-border/60" />
+              <Button variant="ghost" size="icon" onClick={openSearch} aria-label={t.nav.search} className="rounded-full">
                 <Search className="h-4 w-4" />
               </Button>
               <LanguageSwitcher compact />
               <Button variant="ghost" size="icon" onClick={toggle} aria-label={t.nav.toggleTheme} className="rounded-full">
                 {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
-              {profile?.username && (
-                <span className="hidden text-sm font-medium text-muted-foreground md:inline">@{profile.username}</span>
-              )}
-              <Button variant="outline" size="sm" onClick={handleSignOut} className="rounded-full">
+              <Button variant="outline" size="sm" onClick={handleSignOut} className="rounded-full ml-1">
                 {t.nav.signOut}
               </Button>
             </>
           ) : (
             <>
+              <LanguageSwitcher compact />
               <Button variant="ghost" size="icon" onClick={toggle} aria-label={t.nav.toggleTheme} className="rounded-full">
                 {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
@@ -86,13 +85,12 @@ function NavItem({
   return (
     <Link
       to={to}
-      className={`group inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground sm:px-3 ${
-        hideOnMobile ? "hidden sm:inline-flex" : ""
-      }`}
+      className="group inline-flex items-center gap-1.5 rounded-full px-2 py-1.5 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
       activeProps={{ className: "bg-muted text-foreground" }}
+      title={label}
     >
       <Icon className="h-4 w-4" />
-      <span className="hidden sm:inline">{label}</span>
+      <span className="hidden lg:inline">{label}</span>
     </Link>
   );
 }

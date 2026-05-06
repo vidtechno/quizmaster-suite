@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { LayoutDashboard, Users, User, Shield, Trophy } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useIsAdmin } from "@/hooks/use-admin";
+import { t } from "@/lib/i18n";
 
 export function MobileBottomNav() {
   const { user } = useAuth();
@@ -11,13 +12,13 @@ export function MobileBottomNav() {
   if (!user) return null;
 
   const items: { to: any; label: string; icon: any; match: (p: string) => boolean }[] = [
-    { to: "/dashboard", label: "Asosiy", icon: LayoutDashboard, match: (p) => p === "/dashboard" || p === "/" },
-    { to: "/groups", label: "Guruhlar", icon: Users, match: (p) => p.startsWith("/groups") },
-    { to: "/leaderboard", label: "Reyting", icon: Trophy, match: (p) => p.startsWith("/leaderboard") },
-    { to: "/profile", label: "Profil", icon: User, match: (p) => p.startsWith("/profile") },
+    { to: "/dashboard", label: t.nav.dashboard, icon: LayoutDashboard, match: (p) => p === "/dashboard" || p === "/" },
+    { to: "/groups", label: t.nav.groups, icon: Users, match: (p) => p.startsWith("/groups") },
+    { to: "/leaderboard", label: t.nav.leaderboard, icon: Trophy, match: (p) => p.startsWith("/leaderboard") },
+    { to: "/profile", label: t.nav.profile, icon: User, match: (p) => p.startsWith("/profile") },
   ];
   if (isAdmin) {
-    items.push({ to: "/admin", label: "Admin", icon: Shield, match: (p) => p.startsWith("/admin") });
+    items.push({ to: "/admin", label: t.nav.admin, icon: Shield, match: (p) => p.startsWith("/admin") });
   }
 
   return (
