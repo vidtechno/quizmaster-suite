@@ -55,10 +55,10 @@ export function GroupFeatures({ groupId, isCreator }: { groupId: string; isCreat
     <div className="mt-8">
       <div className="mb-4 flex flex-wrap gap-2">
         <TabBtn active={tab === "chat"} onClick={() => setTab("chat")} icon={MessageCircle}>
-          {tr.chat}
+          {t.groups.tabChat}
         </TabBtn>
         <TabBtn active={tab === "ann"} onClick={() => setTab("ann")} icon={Megaphone}>
-          {tr.announcements}
+          {t.groups.tabAnnouncements}
         </TabBtn>
         <TabBtn active={tab === "assignments"} onClick={() => setTab("assignments")} icon={ClipboardList}>
           {t.groups.tabAssignments}
@@ -67,7 +67,7 @@ export function GroupFeatures({ groupId, isCreator }: { groupId: string; isCreat
           {t.groups.tabFiles}
         </TabBtn>
         <TabBtn active={tab === "stats"} onClick={() => setTab("stats")} icon={BarChart3}>
-          {tr.groupStats}
+          {t.groups.tabStats}
         </TabBtn>
       </div>
       {tab === "chat" && <ChatPanel groupId={groupId} />}
@@ -183,7 +183,7 @@ function ChatPanel({ groupId }: { groupId: string }) {
   return (
     <Card className="flex h-[520px] flex-col overflow-hidden">
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
-        {msgs.length === 0 && <p className="text-center text-sm text-muted-foreground">{tr.noMessages}</p>}
+        {msgs.length === 0 && <p className="text-center text-sm text-muted-foreground">"…"</p>}
         {grouped.map((bucket, i) => (
           <div key={i} className="space-y-2">
             <div className="sticky top-0 z-10 mx-auto w-max rounded-full bg-muted/80 px-3 py-0.5 text-[11px] font-medium text-muted-foreground backdrop-blur">
@@ -238,7 +238,7 @@ function ChatPanel({ groupId }: { groupId: string }) {
         <Input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder={tr.messagePh}
+          placeholder=""
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), send())}
         />
         <Button onClick={send} className="rounded-full bg-gradient-hero shadow-glow">
@@ -295,15 +295,15 @@ function AnnouncementsPanel({ groupId, isCreator }: { groupId: string; isCreator
         <Card className="p-4">
           {!open ? (
             <Button onClick={() => setOpen(true)} className="rounded-full bg-gradient-hero shadow-glow">
-              <Plus className="mr-2 h-4 w-4" /> {tr.newAnnouncement}
+              <Plus className="mr-2 h-4 w-4" /> {t.groups.newAssignment}
             </Button>
           ) : (
             <div className="space-y-2">
-              <Input placeholder={tr.title} value={title} onChange={(e) => setTitle(e.target.value)} />
-              <Textarea placeholder={tr.body} value={body} onChange={(e) => setBody(e.target.value)} rows={3} />
+              <Input placeholder={t.groups.assignmentTitle} value={title} onChange={(e) => setTitle(e.target.value)} />
+              <Textarea placeholder="" value={body} onChange={(e) => setBody(e.target.value)} rows={3} />
               <div className="flex gap-2">
                 <Button onClick={post} className="rounded-full">
-                  {tr.post}
+                  {t.save}
                 </Button>
                 <Button variant="ghost" onClick={() => setOpen(false)}>
                   <X className="h-4 w-4" />
@@ -314,7 +314,7 @@ function AnnouncementsPanel({ groupId, isCreator }: { groupId: string; isCreator
         </Card>
       )}
       {items.length === 0 ? (
-        <Card className="p-8 text-center text-muted-foreground">{tr.noAnnouncements}</Card>
+        <Card className="p-8 text-center text-muted-foreground">{t.groups.noAssignments}</Card>
       ) : (
         items.map((a) => (
           <Card key={a.id} className="p-4">
@@ -627,11 +627,11 @@ function StatsPanel({ groupId }: { groupId: string }) {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatBox label="A'zolar" value={stats.members} />
         <StatBox label="Testlar" value={stats.tests} />
-        <StatBox label={tr.attempts} value={stats.attempts} />
-        <StatBox label={tr.avg} value={`${stats.avg_score}%`} />
+        <StatBox label={t.groups.allAttempts} value={stats.attempts} />
+        <StatBox label={t.groups.avgScore} value={`${stats.avg_score}%`} />
       </div>
       <Card className="p-4">
-        <h4 className="mb-3 text-sm font-semibold">{tr.attemptsByDay} (14 kun)</h4>
+        <h4 className="mb-3 text-sm font-semibold">{t.groups.activity} (14 kun)</h4>
         {days.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground">Hali ma'lumot yo'q</p>
         ) : (
