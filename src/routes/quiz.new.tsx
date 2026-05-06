@@ -52,6 +52,7 @@ function NewQuizPage() {
           options: q.options.map((o) => o.trim()),
           correct_answer_index: q.correct_answer_index,
           explanation: (q.explanation ?? "").trim() || null,
+          time_seconds: q.time_seconds ?? null,
           position: idx,
         }));
         const { error: qErr } = await supabase.from("questions").insert(rows);
