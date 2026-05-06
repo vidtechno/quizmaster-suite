@@ -62,6 +62,7 @@ function EditQuizPage() {
             explanation: q.explanation ?? "",
             attempts_count: q.attempts_count ?? 0,
             error_rate: Number(q.error_rate ?? 0),
+            time_seconds: q.time_seconds ?? null,
           })),
         );
       } catch {
@@ -99,6 +100,7 @@ function EditQuizPage() {
         options: q.options.map((o) => o.trim()),
         correct_answer_index: q.correct_answer_index,
         explanation: (q.explanation ?? "").trim() || null,
+        time_seconds: q.time_seconds ?? null,
         position: idx,
       }));
       const ok2 = await safeMutation(() => supabase.from("questions").insert(rows));

@@ -18,6 +18,7 @@ export type QuestionDraft = {
   explanation?: string | null;
   attempts_count?: number;
   error_rate?: number;
+  time_seconds?: number | null;
 };
 
 export type TestDraft = {
@@ -365,20 +366,42 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, testCod
                 </div>
                 {qErr.options?.some(Boolean) && <FieldError>{t.validate.fieldRequired}</FieldError>}
 
-                <div className="mt-4">
-                  <div className="mb-1.5 flex items-center gap-1.5">
-                    <Label htmlFor={`q-${qi}-exp`} className="text-xs font-medium">
-                      {t.editor.explanationLabel}
-                    </Label>
-                    <HelpHint text={t.editor.help.explanation} />
+                <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_180px]">
+                  <div>
+                    <div className="mb-1.5 flex items-center gap-1.5">
+                      <Label htmlFor={`q-${qi}-exp`} className="text-xs font-medium">
+                        {t.editor.explanationLabel}
+                      </Label>
+                      <HelpHint text={t.editor.help.explanation} />
+                    </div>
+                    <Textarea
+                      id={`q-${qi}-exp`}
+                      value={q.explanation ?? ""}
+                      onChange={(e) => updateQ(qi, { explanation: e.target.value })}
+                      placeholder={t.editor.explanationPh}
+                      className="min-h-[60px] text-sm"
+                    />
                   </div>
-                  <Textarea
-                    id={`q-${qi}-exp`}
-                    value={q.explanation ?? ""}
-                    onChange={(e) => updateQ(qi, { explanation: e.target.value })}
-                    placeholder={t.editor.explanationPh}
-                    className="min-h-[60px] text-sm"
-                  />
+                  <div>
+                    <div className="mb-1.5 flex items-center gap-1.5">
+                      <Label htmlFor={`q-${qi}-time`} className="text-xs font-medium">
+                        {t.editor.questionTimeLabel}
+                      </Label>
+                      <HelpHint text={t.editor.questionTimeHint} />
+                    </div>
+                    <Input
+                      id={`q-${qi}-time`}
+                      type="number"
+                      min={5}
+                      max={3600}
+                      value={q.time_seconds ?? ""}
+                      onChange={(e) => {
+                        const v = e.target.value.trim();
+                        updateQ(qi, { time_seconds: v ? Math.max(5, parseInt(v) || 5) : null });
+                      }}
+                      placeholder="—"
+                    />
+                  </div>
                 </div>
               </div>
             );
