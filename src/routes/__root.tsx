@@ -8,6 +8,7 @@ import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { MobileTopBar } from "@/components/MobileTopBar";
 import { LocaleProvider } from "@/lib/locale";
 import { GlobalSearchProvider } from "@/components/GlobalSearch";
+import { OnboardingTour } from "@/components/OnboardingTour";
 import { t } from "@/lib/i18n";
 
 import appCss from "../styles.css?url";
@@ -97,6 +98,7 @@ function RootComponent() {
                 </main>
                 <MobileBottomNav />
               </div>
+              <OnboardingTour />
               <Toaster richColors closeButton position="top-right" />
             </GlobalSearchProvider>
           </AuthModalProvider>
