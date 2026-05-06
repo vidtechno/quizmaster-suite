@@ -50,7 +50,7 @@ type TabKey = "chat" | "ann" | "assignments" | "files" | "stats";
 
 export function GroupFeatures({ groupId, isCreator }: { groupId: string; isCreator: boolean }) {
   const [tab, setTab] = useState<TabKey>("chat");
-  const { tr } = useLocale();
+
   return (
     <div className="mt-8">
       <div className="mb-4 flex flex-wrap gap-2">
@@ -108,7 +108,7 @@ function formatDay(d: string, locale: string) {
 
 function ChatPanel({ groupId }: { groupId: string }) {
   const { user } = useAuth();
-  const { tr } = useLocale();
+
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [authors, setAuthors] = useState<Record<string, { name: string; avatar?: string | null }>>({});
   const [text, setText] = useState("");
@@ -253,7 +253,7 @@ function ChatPanel({ groupId }: { groupId: string }) {
 
 function AnnouncementsPanel({ groupId, isCreator }: { groupId: string; isCreator: boolean }) {
   const { user } = useAuth();
-  const { tr } = useLocale();
+
   const [items, setItems] = useState<Ann[]>([]);
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -614,7 +614,7 @@ function FilesPanel({ groupId, isCreator }: { groupId: string; isCreator: boolea
 /* ------------------------------ STATS ------------------------------ */
 
 function StatsPanel({ groupId }: { groupId: string }) {
-  const { tr } = useLocale();
+
   const [stats, setStats] = useState<any>(null);
   useEffect(() => {
     supabase.rpc("get_group_stats", { _group_id: groupId }).then(({ data }) => setStats(data));
