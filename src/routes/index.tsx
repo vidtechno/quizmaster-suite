@@ -2,7 +2,25 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useAuthModal } from "@/components/AuthModal";
 import { useAuth } from "@/lib/auth";
-import { ArrowRight, Brain, Trophy, Shuffle, Lock, BarChart3, Users } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  ArrowRight,
+  Brain,
+  Trophy,
+  Shuffle,
+  Lock,
+  BarChart3,
+  Users,
+  GraduationCap,
+  BookOpen,
+  Building2,
+  UserCheck,
+} from "lucide-react";
 import { t } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
