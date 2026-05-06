@@ -85,13 +85,12 @@ function NavItem({
   return (
     <Link
       to={to}
-      className={`group inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground sm:px-3 ${
-        hideOnMobile ? "hidden sm:inline-flex" : ""
-      }`}
+      className="group inline-flex items-center gap-1.5 rounded-full px-2 py-1.5 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
       activeProps={{ className: "bg-muted text-foreground" }}
+      title={label}
     >
       <Icon className="h-4 w-4" />
-      <span className="hidden sm:inline">{label}</span>
+      <span className="hidden lg:inline">{label}</span>
     </Link>
   );
 }
