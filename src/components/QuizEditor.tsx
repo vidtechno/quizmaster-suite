@@ -1,14 +1,17 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Check, AlertCircle, Info } from "lucide-react";
+import { Plus, Trash2, Check, AlertCircle, Info, ImagePlus, X as XIcon } from "lucide-react";
 import { HelpHint } from "@/components/HelpHint";
 import { t } from "@/lib/i18n";
 import { toast } from "sonner";
 import { getDifficulty, difficultyLabel, difficultyToneClass } from "@/lib/difficulty";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { validateImageFile, SAFE_IMAGE_ACCEPT } from "@/lib/upload-safety";
 
 export type QuestionDraft = {
   id?: string;
@@ -19,6 +22,7 @@ export type QuestionDraft = {
   attempts_count?: number;
   error_rate?: number;
   time_seconds?: number | null;
+  image_url?: string | null;
 };
 
 export type TestDraft = {
@@ -28,6 +32,7 @@ export type TestDraft = {
   random_enabled: boolean;
   max_attempts: number;
   questions_per_attempt: number | null;
+  one_way_mode: boolean;
 };
 
 type Props = {
