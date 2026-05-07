@@ -32,6 +32,7 @@ type Test = {
   max_attempts: number;
   creator_id: string;
   questions_per_attempt: number | null;
+  one_way_mode?: boolean;
 };
 type Question = {
   id: string;
@@ -40,6 +41,7 @@ type Question = {
   correct_answer_index: number;
   position: number;
   explanation: string | null;
+  image_url?: string | null;
 };
 
 type Mode = "intro" | "running" | "submitted";
@@ -102,6 +104,7 @@ function QuizPage() {
             correct_answer_index: q.correct_answer_index,
             position: q.position,
             explanation: q.explanation ?? null,
+            image_url: q.image_url ?? null,
           })),
         );
 
@@ -147,6 +150,58 @@ function QuizPage() {
     return () => clearInterval(tick);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
+
+  // Anti-copy / right-click block while running
+  useEffect(() => {
+    if (mode !== "running") return;
+    const block = (e: Event) => e.preventDefault();
+    const blockKey = (e: KeyboardEvent) => {
+      const k = e.key.toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && (k === "c" || k === "x" || k === "a" || k === "p" || k === "s")) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener("contextmenu", block);
+    document.addEventListener("copy", block);
+    document.addEventListener("cut", block);
+    document.addEventListener("selectstart", block);
+    document.addEventListener("dragstart", block);
+    document.addEventListener("keydown", blockKey);
+    document.body.style.userSelect = "none";
+    return () => {
+      document.removeEventListener("contextmenu", block);
+      document.removeEventListener("copy", block);
+      document.removeEventListener("cut", block);
+      document.removeEventListener("selectstart", block);
+      document.removeEventListener("dragstart", block);
+      document.removeEventListener("keydown", blockKey);
+      document.body.style.userSelect = "";
+    };
+  }, [mode]);
+
+  // Flush pending offline attempts when online
+  useEffect(() => {
+    if (!user) return;
+    const flush = async () => {
+      try {
+        const key = "pending_attempts";
+        const list: any[] = JSON.parse(localStorage.getItem(key) || "[]");
+        if (!list.length || !navigator.onLine) return;
+        const remaining: any[] = [];
+        for (const p of list) {
+          const { error } = await supabase.from("test_attempts").insert(p);
+          if (error) remaining.push(p);
+        }
+        localStorage.setItem(key, JSON.stringify(remaining));
+        if (remaining.length < list.length) {
+          toast.success("Saqlangan natijalar yuborildi");
+        }
+      } catch {}
+    };
+    flush();
+    window.addEventListener("online", flush);
+    return () => window.removeEventListener("online", flush);
+  }, [user]);
 
   function startAttempt() {
     if (!user) {
@@ -203,30 +258,50 @@ function QuizPage() {
       };
     });
 
+    const payload = {
+      user_id: user.id,
+      test_id: test.id,
+      attempt_number: attemptsUsed + 1,
+      score,
+      total_questions: runQuestions.length,
+      time_spent: timeSpent,
+      answers_log: log,
+      status: "completed",
+      submitted_at: new Date().toISOString(),
+    };
+
+    const persistLater = () => {
+      try {
+        const key = "pending_attempts";
+        const existing = JSON.parse(localStorage.getItem(key) || "[]");
+        existing.push(payload);
+        localStorage.setItem(key, JSON.stringify(existing));
+        toast.message("Internet yo'q — natija saqlandi va keyinroq yuboriladi");
+      } catch {}
+    };
+
     try {
-      const nextAttempt = attemptsUsed + 1;
-      const { error } = await supabase.from("test_attempts").insert({
-        user_id: user.id,
-        test_id: test.id,
-        attempt_number: nextAttempt,
-        score,
-        total_questions: runQuestions.length,
-        time_spent: timeSpent,
-        answers_log: log,
-        status: "completed",
-        submitted_at: new Date().toISOString(),
-      });
-      if (error) {
-        toast.error(t.err.saveFailed);
-        return;
+      if (!navigator.onLine) {
+        persistLater();
+      } else {
+        const { error } = await supabase.from("test_attempts").insert(payload);
+        if (error) {
+          persistLater();
+        } else {
+          supabase.rpc("recompute_question_stats", { _test_id: test.id }).then(() => {});
+        }
       }
-      // Update question stats in background (non-critical)
-      supabase.rpc("recompute_question_stats", { _test_id: test.id }).then(() => {});
-      setAttemptsUsed(nextAttempt);
+      setAttemptsUsed((n) => n + 1);
       setLastResult({ score, total: runQuestions.length, time: timeSpent });
       setMode("submitted");
+      // Clear cached run state
+      try {
+        localStorage.removeItem(`quiz_run_${test.id}_${user.id}`);
+      } catch {}
     } catch {
-      toast.error(t.err.network);
+      persistLater();
+      setLastResult({ score, total: runQuestions.length, time: timeSpent });
+      setMode("submitted");
     }
   }
 
@@ -446,8 +521,17 @@ function QuizPage() {
         <div className="mb-6 h-1.5 overflow-hidden rounded-full bg-muted">
           <div className="h-full bg-gradient-accent transition-all duration-300" style={{ width: `${progress}%` }} />
         </div>
-        <div className="rounded-2xl border bg-card p-5 shadow-card sm:p-8">
+        <div className="rounded-2xl border bg-card p-5 shadow-card sm:p-8 select-none">
           <h2 className="font-display text-xl font-semibold leading-snug sm:text-2xl">{q.question_text}</h2>
+          {q.image_url && (
+            <img
+              src={q.image_url}
+              alt=""
+              draggable={false}
+              onContextMenu={(e) => e.preventDefault()}
+              className="mt-4 max-h-80 rounded-xl border pointer-events-none"
+            />
+          )}
           <div className="mt-6 space-y-2">
             {q._displayOptions.map((opt, i) => {
               const selected = answers[q.id] === opt.originalIndex;
@@ -473,9 +557,13 @@ function QuizPage() {
           </div>
         </div>
         <div className="mt-6 flex justify-between gap-3">
-          <Button variant="outline" onClick={() => setCurrent((c) => Math.max(0, c - 1))} disabled={current === 0}>
-            {t.player.previous}
-          </Button>
+          {test.one_way_mode ? (
+            <div className="self-center text-xs text-muted-foreground">Orqaga qaytib bo'lmaydi</div>
+          ) : (
+            <Button variant="outline" onClick={() => setCurrent((c) => Math.max(0, c - 1))} disabled={current === 0}>
+              {t.player.previous}
+            </Button>
+          )}
           {current < runQuestions.length - 1 ? (
             <Button onClick={() => setCurrent((c) => c + 1)}>
               {t.player.next} <ArrowRight className="ml-2 h-4 w-4" />

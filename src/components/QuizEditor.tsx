@@ -1,14 +1,17 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Check, AlertCircle, Info } from "lucide-react";
+import { Plus, Trash2, Check, AlertCircle, Info, ImagePlus, X as XIcon } from "lucide-react";
 import { HelpHint } from "@/components/HelpHint";
 import { t } from "@/lib/i18n";
 import { toast } from "sonner";
 import { getDifficulty, difficultyLabel, difficultyToneClass } from "@/lib/difficulty";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { validateImageFile, SAFE_IMAGE_ACCEPT } from "@/lib/upload-safety";
 
 export type QuestionDraft = {
   id?: string;
@@ -19,6 +22,7 @@ export type QuestionDraft = {
   attempts_count?: number;
   error_rate?: number;
   time_seconds?: number | null;
+  image_url?: string | null;
 };
 
 export type TestDraft = {
@@ -28,6 +32,7 @@ export type TestDraft = {
   random_enabled: boolean;
   max_attempts: number;
   questions_per_attempt: number | null;
+  one_way_mode: boolean;
 };
 
 type Props = {
@@ -284,6 +289,19 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, testCod
               onCheckedChange={(v) => setTest({ ...test, random_enabled: v })}
             />
           </div>
+
+          <div className="md:col-span-2 flex items-start justify-between gap-3 rounded-lg border p-3">
+            <div>
+              <Label className="cursor-pointer">One-way rejim (orqaga qaytib bo'lmaydi)</Label>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Yoqilsa, o'quvchi keyingi savolga o'tgach oldingi savolga qayta olmaydi. Default: o'chiq.
+              </p>
+            </div>
+            <Switch
+              checked={test.one_way_mode}
+              onCheckedChange={(v) => setTest({ ...test, one_way_mode: v })}
+            />
+          </div>
         </div>
       </section>
 
@@ -329,6 +347,11 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, testCod
                   aria-invalid={!!qErr.text}
                 />
                 {qErr.text && <FieldError>{t.validate.fieldRequired}</FieldError>}
+
+                <QuestionImage
+                  imageUrl={q.image_url ?? null}
+                  onChange={(url) => updateQ(qi, { image_url: url })}
+                />
 
                 <p className="mb-2 mt-3 text-xs font-medium text-muted-foreground">{t.editor.optionsHint}</p>
                 <div className="space-y-2">
@@ -429,5 +452,75 @@ function FieldError({ children }: { children: React.ReactNode }) {
     <p className="mt-1 flex items-center gap-1 text-xs text-destructive">
       <AlertCircle className="h-3 w-3" /> {children}
     </p>
+  );
+}
+
+function QuestionImage({
+  imageUrl,
+  onChange,
+}: {
+  imageUrl: string | null;
+  onChange: (url: string | null) => void;
+}) {
+  const { user } = useAuth();
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    const err = validateImageFile(file);
+    if (err) {
+      toast.error(err);
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${user.id}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("question-images")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from("question-images").getPublicUrl(path);
+      onChange(data.publicUrl);
+      toast.success("Rasm yuklandi");
+    } catch (e: any) {
+      toast.error(e.message || "Yuklash xatoligi");
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  }
+
+  return (
+    <div className="mt-3">
+      <input ref={inputRef} type="file" hidden accept={SAFE_IMAGE_ACCEPT} onChange={onPick} />
+      {imageUrl ? (
+        <div className="relative inline-block">
+          <img src={imageUrl} alt="" className="max-h-48 rounded-lg border" />
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow"
+            aria-label="O'chirish"
+          >
+            <XIcon className="h-3 w-3" />
+          </button>
+        </div>
+      ) : (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={uploading}
+          onClick={() => inputRef.current?.click()}
+        >
+          <ImagePlus className="mr-2 h-4 w-4" />
+          {uploading ? "Yuklanmoqda..." : "Rasm qo'shish (max 5MB)"}
+        </Button>
+      )}
+    </div>
   );
 }

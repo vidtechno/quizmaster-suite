@@ -49,6 +49,7 @@ function EditQuizPage() {
           random_enabled: tt.random_enabled,
           max_attempts: tt.max_attempts,
           questions_per_attempt: tt.questions_per_attempt ?? null,
+          one_way_mode: (tt as any).one_way_mode ?? false,
         });
         setTestCode(tt.test_code);
 
@@ -63,6 +64,7 @@ function EditQuizPage() {
             attempts_count: q.attempts_count ?? 0,
             error_rate: Number(q.error_rate ?? 0),
             time_seconds: q.time_seconds ?? null,
+            image_url: q.image_url ?? null,
           })),
         );
       } catch {
@@ -85,7 +87,8 @@ function EditQuizPage() {
           random_enabled: td.random_enabled,
           max_attempts: td.max_attempts,
           questions_per_attempt: td.questions_per_attempt,
-        })
+          one_way_mode: td.one_way_mode,
+        } as any)
         .eq("id", id);
       if (updErr) {
         toast.error(t.err.saveFailed);
@@ -101,6 +104,7 @@ function EditQuizPage() {
         correct_answer_index: q.correct_answer_index,
         explanation: (q.explanation ?? "").trim() || null,
         time_seconds: q.time_seconds ?? null,
+        image_url: q.image_url ?? null,
         position: idx,
       }));
       const ok2 = await safeMutation(() => supabase.from("questions").insert(rows));
