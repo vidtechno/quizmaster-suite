@@ -521,8 +521,17 @@ function QuizPage() {
         <div className="mb-6 h-1.5 overflow-hidden rounded-full bg-muted">
           <div className="h-full bg-gradient-accent transition-all duration-300" style={{ width: `${progress}%` }} />
         </div>
-        <div className="rounded-2xl border bg-card p-5 shadow-card sm:p-8">
+        <div className="rounded-2xl border bg-card p-5 shadow-card sm:p-8 select-none">
           <h2 className="font-display text-xl font-semibold leading-snug sm:text-2xl">{q.question_text}</h2>
+          {q.image_url && (
+            <img
+              src={q.image_url}
+              alt=""
+              draggable={false}
+              onContextMenu={(e) => e.preventDefault()}
+              className="mt-4 max-h-80 rounded-xl border pointer-events-none"
+            />
+          )}
           <div className="mt-6 space-y-2">
             {q._displayOptions.map((opt, i) => {
               const selected = answers[q.id] === opt.originalIndex;
@@ -548,9 +557,13 @@ function QuizPage() {
           </div>
         </div>
         <div className="mt-6 flex justify-between gap-3">
-          <Button variant="outline" onClick={() => setCurrent((c) => Math.max(0, c - 1))} disabled={current === 0}>
-            {t.player.previous}
-          </Button>
+          {test.one_way_mode ? (
+            <div className="self-center text-xs text-muted-foreground">Orqaga qaytib bo'lmaydi</div>
+          ) : (
+            <Button variant="outline" onClick={() => setCurrent((c) => Math.max(0, c - 1))} disabled={current === 0}>
+              {t.player.previous}
+            </Button>
+          )}
           {current < runQuestions.length - 1 ? (
             <Button onClick={() => setCurrent((c) => c + 1)}>
               {t.player.next} <ArrowRight className="ml-2 h-4 w-4" />
