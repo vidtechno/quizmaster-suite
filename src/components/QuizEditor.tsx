@@ -348,6 +348,11 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, testCod
                 />
                 {qErr.text && <FieldError>{t.validate.fieldRequired}</FieldError>}
 
+                <QuestionImage
+                  imageUrl={q.image_url ?? null}
+                  onChange={(url) => updateQ(qi, { image_url: url })}
+                />
+
                 <p className="mb-2 mt-3 text-xs font-medium text-muted-foreground">{t.editor.optionsHint}</p>
                 <div className="space-y-2">
                   {q.options.map((opt, oi) => {
