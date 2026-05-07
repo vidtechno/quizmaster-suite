@@ -545,6 +545,11 @@ function FilesPanel({ groupId, isCreator }: { groupId: string; isCreator: boolea
       toast.error("Max 25 MB");
       return;
     }
+    if (!isSafeUploadFile(file)) {
+      toast.error("Bunday turdagi fayl ruxsat etilmagan");
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
     setUploading(true);
     try {
       const path = `${groupId}/${Date.now()}_${file.name.replace(/[^\w.\-]/g, "_")}`;
