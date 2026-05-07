@@ -206,30 +206,50 @@ function QuizPage() {
       };
     });
 
+    const payload = {
+      user_id: user.id,
+      test_id: test.id,
+      attempt_number: attemptsUsed + 1,
+      score,
+      total_questions: runQuestions.length,
+      time_spent: timeSpent,
+      answers_log: log,
+      status: "completed",
+      submitted_at: new Date().toISOString(),
+    };
+
+    const persistLater = () => {
+      try {
+        const key = "pending_attempts";
+        const existing = JSON.parse(localStorage.getItem(key) || "[]");
+        existing.push(payload);
+        localStorage.setItem(key, JSON.stringify(existing));
+        toast.message("Internet yo'q — natija saqlandi va keyinroq yuboriladi");
+      } catch {}
+    };
+
     try {
-      const nextAttempt = attemptsUsed + 1;
-      const { error } = await supabase.from("test_attempts").insert({
-        user_id: user.id,
-        test_id: test.id,
-        attempt_number: nextAttempt,
-        score,
-        total_questions: runQuestions.length,
-        time_spent: timeSpent,
-        answers_log: log,
-        status: "completed",
-        submitted_at: new Date().toISOString(),
-      });
-      if (error) {
-        toast.error(t.err.saveFailed);
-        return;
+      if (!navigator.onLine) {
+        persistLater();
+      } else {
+        const { error } = await supabase.from("test_attempts").insert(payload);
+        if (error) {
+          persistLater();
+        } else {
+          supabase.rpc("recompute_question_stats", { _test_id: test.id }).then(() => {});
+        }
       }
-      // Update question stats in background (non-critical)
-      supabase.rpc("recompute_question_stats", { _test_id: test.id }).then(() => {});
-      setAttemptsUsed(nextAttempt);
+      setAttemptsUsed((n) => n + 1);
       setLastResult({ score, total: runQuestions.length, time: timeSpent });
       setMode("submitted");
+      // Clear cached run state
+      try {
+        localStorage.removeItem(`quiz_run_${test.id}_${user.id}`);
+      } catch {}
     } catch {
-      toast.error(t.err.network);
+      persistLater();
+      setLastResult({ score, total: runQuestions.length, time: timeSpent });
+      setMode("submitted");
     }
   }
 
