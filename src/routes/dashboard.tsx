@@ -218,19 +218,16 @@ function DashboardPage() {
             <KeyRound className="mr-2 h-4 w-4" />
             {t.groups.joinByCode}
           </Button>
-          {tab === "tests" ? (
-            <Button onClick={() => navigate({ to: "/quiz/new" })}>
-              <Plus className="mr-2 h-4 w-4" />
-              {t.dashboard.newQuiz}
+          <Link to="/groups">
+            <Button variant="secondary" className="rounded-full">
+              <Users className="mr-2 h-4 w-4" />
+              {t.groups.newGroup}
             </Button>
-          ) : (
-            <Link to="/groups">
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                {t.groups.newGroup}
-              </Button>
-            </Link>
-          )}
+          </Link>
+          <Button onClick={() => navigate({ to: "/quiz/new" })}>
+            <Plus className="mr-2 h-4 w-4" />
+            {t.dashboard.newQuiz}
+          </Button>
         </div>
       </div>
 
