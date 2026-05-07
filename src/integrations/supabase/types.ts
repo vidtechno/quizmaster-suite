@@ -240,6 +240,7 @@ export type Database = {
           error_rate: number
           explanation: string | null
           id: string
+          image_url: string | null
           options: Json
           position: number
           question_text: string
@@ -253,6 +254,7 @@ export type Database = {
           error_rate?: number
           explanation?: string | null
           id?: string
+          image_url?: string | null
           options: Json
           position?: number
           question_text: string
@@ -266,6 +268,7 @@ export type Database = {
           error_rate?: number
           explanation?: string | null
           id?: string
+          image_url?: string | null
           options?: Json
           position?: number
           question_text?: string
@@ -446,6 +449,7 @@ export type Database = {
           description: string | null
           id: string
           max_attempts: number
+          one_way_mode: boolean
           questions_per_attempt: number | null
           random_enabled: boolean
           test_code: string
@@ -459,6 +463,7 @@ export type Database = {
           description?: string | null
           id?: string
           max_attempts?: number
+          one_way_mode?: boolean
           questions_per_attempt?: number | null
           random_enabled?: boolean
           test_code: string
@@ -472,6 +477,7 @@ export type Database = {
           description?: string | null
           id?: string
           max_attempts?: number
+          one_way_mode?: boolean
           questions_per_attempt?: number | null
           random_enabled?: boolean
           test_code?: string
