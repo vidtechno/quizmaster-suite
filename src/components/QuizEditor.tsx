@@ -289,6 +289,19 @@ export function QuizEditor({ initialTest, initialQuestions, submitLabel, testCod
               onCheckedChange={(v) => setTest({ ...test, random_enabled: v })}
             />
           </div>
+
+          <div className="md:col-span-2 flex items-start justify-between gap-3 rounded-lg border p-3">
+            <div>
+              <Label className="cursor-pointer">One-way rejim (orqaga qaytib bo'lmaydi)</Label>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Yoqilsa, o'quvchi keyingi savolga o'tgach oldingi savolga qayta olmaydi. Default: o'chiq.
+              </p>
+            </div>
+            <Switch
+              checked={test.one_way_mode}
+              onCheckedChange={(v) => setTest({ ...test, one_way_mode: v })}
+            />
+          </div>
         </div>
       </section>
 
