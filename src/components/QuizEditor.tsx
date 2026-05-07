@@ -454,3 +454,73 @@ function FieldError({ children }: { children: React.ReactNode }) {
     </p>
   );
 }
+
+function QuestionImage({
+  imageUrl,
+  onChange,
+}: {
+  imageUrl: string | null;
+  onChange: (url: string | null) => void;
+}) {
+  const { user } = useAuth();
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    const err = validateImageFile(file);
+    if (err) {
+      toast.error(err);
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${user.id}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("question-images")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from("question-images").getPublicUrl(path);
+      onChange(data.publicUrl);
+      toast.success("Rasm yuklandi");
+    } catch (e: any) {
+      toast.error(e.message || "Yuklash xatoligi");
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  }
+
+  return (
+    <div className="mt-3">
+      <input ref={inputRef} type="file" hidden accept={SAFE_IMAGE_ACCEPT} onChange={onPick} />
+      {imageUrl ? (
+        <div className="relative inline-block">
+          <img src={imageUrl} alt="" className="max-h-48 rounded-lg border" />
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow"
+            aria-label="O'chirish"
+          >
+            <XIcon className="h-3 w-3" />
+          </button>
+        </div>
+      ) : (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={uploading}
+          onClick={() => inputRef.current?.click()}
+        >
+          <ImagePlus className="mr-2 h-4 w-4" />
+          {uploading ? "Yuklanmoqda..." : "Rasm qo'shish (max 5MB)"}
+        </Button>
+      )}
+    </div>
+  );
+}
