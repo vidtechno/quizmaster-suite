@@ -600,7 +600,8 @@ function FilesPanel({ groupId, isCreator }: { groupId: string; isCreator: boolea
     <div className="space-y-4">
       {isCreator && (
         <Card className="p-4">
-          <input ref={inputRef} type="file" hidden onChange={onPick} />
+          <input ref={inputRef} type="file" hidden accept={SAFE_UPLOAD_ACCEPT} onChange={onPick} />
+          <p className="mb-2 text-xs text-muted-foreground">PDF, Office, rasm, audio, video, ZIP — max 25 MB</p>
           <Button
             disabled={uploading}
             onClick={() => inputRef.current?.click()}
