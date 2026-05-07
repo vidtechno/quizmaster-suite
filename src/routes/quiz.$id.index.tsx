@@ -151,6 +151,58 @@ function QuizPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
+  // Anti-copy / right-click block while running
+  useEffect(() => {
+    if (mode !== "running") return;
+    const block = (e: Event) => e.preventDefault();
+    const blockKey = (e: KeyboardEvent) => {
+      const k = e.key.toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && (k === "c" || k === "x" || k === "a" || k === "p" || k === "s")) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener("contextmenu", block);
+    document.addEventListener("copy", block);
+    document.addEventListener("cut", block);
+    document.addEventListener("selectstart", block);
+    document.addEventListener("dragstart", block);
+    document.addEventListener("keydown", blockKey);
+    document.body.style.userSelect = "none";
+    return () => {
+      document.removeEventListener("contextmenu", block);
+      document.removeEventListener("copy", block);
+      document.removeEventListener("cut", block);
+      document.removeEventListener("selectstart", block);
+      document.removeEventListener("dragstart", block);
+      document.removeEventListener("keydown", blockKey);
+      document.body.style.userSelect = "";
+    };
+  }, [mode]);
+
+  // Flush pending offline attempts when online
+  useEffect(() => {
+    if (!user) return;
+    const flush = async () => {
+      try {
+        const key = "pending_attempts";
+        const list: any[] = JSON.parse(localStorage.getItem(key) || "[]");
+        if (!list.length || !navigator.onLine) return;
+        const remaining: any[] = [];
+        for (const p of list) {
+          const { error } = await supabase.from("test_attempts").insert(p);
+          if (error) remaining.push(p);
+        }
+        localStorage.setItem(key, JSON.stringify(remaining));
+        if (remaining.length < list.length) {
+          toast.success("Saqlangan natijalar yuborildi");
+        }
+      } catch {}
+    };
+    flush();
+    window.addEventListener("online", flush);
+    return () => window.removeEventListener("online", flush);
+  }, [user]);
+
   function startAttempt() {
     if (!user) {
       toast.error(t.player.needLogin);
