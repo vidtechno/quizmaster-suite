@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
+import { isSafeUploadFile, SAFE_UPLOAD_ACCEPT } from "@/lib/upload-safety";
 
 type Msg = { id: string; user_id: string; content: string; created_at: string };
 type Ann = { id: string; title: string; body: string; created_at: string; creator_id: string };
