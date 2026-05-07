@@ -138,12 +138,40 @@ function ChatPanel({ groupId }: { groupId: string }) {
     load();
     const ch = supabase
       .channel(`group-chat-${groupId}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "group_messages", filter: `group_id=eq.${groupId}` }, () => load())
-      .on("postgres_changes", { event: "DELETE", schema: "public", table: "group_messages", filter: `group_id=eq.${groupId}` }, () => load())
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "group_messages", filter: `group_id=eq.${groupId}` },
+        async (payload) => {
+          const m = payload.new as Msg;
+          setMsgs((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
+          if (!authors[m.user_id]) {
+            const { data: prof } = await supabase
+              .from("profiles")
+              .select("id,full_name,username,avatar_url")
+              .eq("id", m.user_id)
+              .maybeSingle();
+            if (prof) {
+              setAuthors((a) => ({
+                ...a,
+                [m.user_id]: { name: (prof as any).full_name || (prof as any).username, avatar: (prof as any).avatar_url },
+              }));
+            }
+          }
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "group_messages", filter: `group_id=eq.${groupId}` },
+        (payload) => {
+          const old = payload.old as { id: string };
+          setMsgs((prev) => prev.filter((x) => x.id !== old.id));
+        },
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId]);
 
   useEffect(() => {
@@ -233,14 +261,15 @@ function ChatPanel({ groupId }: { groupId: string }) {
         ))}
         <div ref={endRef} />
       </div>
-      <div className="flex gap-2 border-t p-3">
-        <Input
+      <div className="flex items-end gap-2 border-t p-3">
+        <Textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder=""
-          onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), send())}
+          placeholder="..."
+          rows={1}
+          className="max-h-32 min-h-[40px] resize-none"
         />
-        <Button onClick={send} className="rounded-full bg-gradient-hero shadow-glow">
+        <Button onClick={send} className="rounded-full bg-gradient-hero shadow-glow" disabled={!text.trim()}>
           <Send className="h-4 w-4" />
         </Button>
       </div>
