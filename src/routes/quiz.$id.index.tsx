@@ -32,6 +32,7 @@ type Test = {
   max_attempts: number;
   creator_id: string;
   questions_per_attempt: number | null;
+  one_way_mode?: boolean;
 };
 type Question = {
   id: string;
@@ -40,6 +41,7 @@ type Question = {
   correct_answer_index: number;
   position: number;
   explanation: string | null;
+  image_url?: string | null;
 };
 
 type Mode = "intro" | "running" | "submitted";
@@ -102,6 +104,7 @@ function QuizPage() {
             correct_answer_index: q.correct_answer_index,
             position: q.position,
             explanation: q.explanation ?? null,
+            image_url: q.image_url ?? null,
           })),
         );
 
